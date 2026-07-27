@@ -12,6 +12,7 @@ int main()
     cube.moveBPrime();
 
     cube.printCube();
+    cube.getUDSlice();
 
     return 0;
 }

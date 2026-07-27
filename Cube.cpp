@@ -10,6 +10,23 @@ Cube::Cube()
 
     std::iota(_cornerPerm.begin(), _cornerPerm.end(), 0);
     std::iota(_edgePerm.begin(), _edgePerm.end(), 0);
+
+    for (int n = 0; n < EDGE_COUNT; ++n)
+    {
+        _CValues[n][0] = 1;
+    }
+    for (int k = 1; k <= SLICE_EDGE_COUNT; ++k)
+    {
+        _CValues[0][k] = 0;
+    }
+
+    for (int n = 1; n < EDGE_COUNT; ++n)
+    {
+        for (int k = 1; k <= SLICE_EDGE_COUNT; ++k)
+        {
+            _CValues[n][k] = _CValues[n - 1][k - 1] + _CValues[n - 1][k];
+        }
+    }
 }
 
 void Cube::moveU()
@@ -370,6 +387,109 @@ void Cube::move2L()
 {
     moveL();
     moveL();
+}
+
+uint32_t Cube::getTwist() const
+{
+    uint32_t twist = 0;
+    uint32_t factor = 1;
+    for (uint8_t i = 0; i < (CORNER_COUNT - 1); ++i)
+    {
+        twist += _cornerOrient[i] * factor;
+        factor *= 3;
+    }
+    return twist;
+}
+
+void Cube::setCornerOrientFromTwist(uint32_t twist)
+{
+    for (uint8_t i = 0; i < (CORNER_COUNT - 1); ++i)
+    {
+        _cornerOrient[i] = twist % 3;
+        twist /= 3;
+    }
+    // The orientation of the last corner is determined by the first seven corners
+    _cornerOrient[CORNER_COUNT - 1] = (3 - (_cornerOrient[0] + _cornerOrient[1] + _cornerOrient[2] + _cornerOrient[3] +
+                                            _cornerOrient[4] + _cornerOrient[5] + _cornerOrient[6]) %
+                                               3) %
+                                      3;
+}
+
+uint32_t Cube::getFlip() const
+{
+    uint32_t flip = 0;
+    uint32_t factor = 1;
+    for (uint8_t i = 0; i < (EDGE_COUNT - 1); ++i)
+    {
+        flip += _edgeOrient[i] * factor;
+        factor *= 2;
+    }
+    return flip;
+}
+
+void Cube::setEdgeOrientFromFlip(uint32_t flip)
+{
+    for (uint8_t i = 0; i < (EDGE_COUNT - 1); ++i)
+    {
+        _edgeOrient[i] = flip % 2;
+        flip /= 2;
+    }
+    // The orientation of the last edge is determined by the first eleven edges
+    _edgeOrient[EDGE_COUNT - 1] = 0;
+    for (uint8_t i = 0; i < (EDGE_COUNT - 1); ++i)
+    {
+        _edgeOrient[EDGE_COUNT - 1] ^= _edgeOrient[i];
+    }
+}
+
+uint32_t Cube::getUDSlice() const
+{
+    constexpr uint8_t FL = 4;
+    constexpr uint8_t FR = 5;
+    constexpr uint8_t BR = 6;
+    constexpr uint8_t BL = 7;
+
+    uint32_t udSlice = 0;
+    size_t remainingSliceEdges = SLICE_EDGE_COUNT;
+    for (size_t i = 0; i < EDGE_COUNT; ++i)
+    {
+        if (_edgePerm[i] == FL || _edgePerm[i] == FR || _edgePerm[i] == BR || _edgePerm[i] == BL)
+        {
+            udSlice += _CValues[i][remainingSliceEdges];
+            --remainingSliceEdges;
+        }
+    }
+
+    return udSlice;
+}
+
+void Cube::setEdgePosFromUDSlice(uint32_t udSlice)
+{
+    constexpr uint8_t FL = 4;
+    constexpr uint8_t FR = 5;
+    constexpr uint8_t BR = 6;
+    constexpr uint8_t BL = 7;
+
+    std::array<uint8_t, EDGE_COUNT> newEdgePerm;
+    int remainingSliceEdges = SLICE_EDGE_COUNT;
+    uint8_t nextSliceEdge = BL;
+
+    for (int i = EDGE_COUNT - 1; i >= 0 && remainingSliceEdges > 0; --i)
+    {
+        if (_CValues[i][remainingSliceEdges] <= udSlice)
+        {
+            newEdgePerm[i] = nextSliceEdge;
+            udSlice -= _CValues[i][remainingSliceEdges];
+            --remainingSliceEdges;
+            --nextSliceEdge;
+        }
+        else
+        {
+            newEdgePerm[i] = 0; // Mark as not in UD slice
+        }
+    }
+
+    _edgePerm = newEdgePerm;
 }
 
 void Cube::printCube() const

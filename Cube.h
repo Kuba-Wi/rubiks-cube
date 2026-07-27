@@ -51,10 +51,49 @@ public:
     void moveLPrime();
     void move2L();
 
+    /*!
+     * Returns a twist of the cube which is a number representing the orientation of the corners.
+     * The twist is calculated as follows:
+     * For each corner, the orientation is multiplied by 3 raised to the power of its index, and the results are summed up.
+     * The twist is a number between 0 and 2186 (3^7 - 1), where 0 represents a solved cube and 2186 represents a cube with
+     * all corners twisted counterclockwise.
+     * Note: the last corner's orientation is determined by the first seven corners, so it is not included in the
+     * calculation.
+     */
+    uint32_t getTwist() const;
+    void setCornerOrientFromTwist(uint32_t twist);
+
+    /*!
+     * Returns a flip of the cube which is a number representing the orientation of the edges.
+     * The flip is calculated as follows:
+     * For each edge, the orientation is multiplied by 2 raised to the power of its index, and the results are summed up.
+     * The flip is a number between 0 and 2047 (2^11 - 1), where 0 represents a solved cube and 2047 represents a cube with
+     * all edges flipped.
+     * Note: the last edge's orientation is determined by the first eleven edges, so it is not included in the calculation.
+     */
+    uint32_t getFlip() const;
+    void setEdgeOrientFromFlip(uint32_t flip);
+
+    /*!
+     * Returns a number representing the position of the edges from the UD slice (the middle layer).
+     * The UD slice consists of the edges FL, FR, BL, and BR.
+     * The position is calculated as follows:
+     * We find positions (n: range 0-11) of the edges (k: range 0-3) and calculate Newton symbol C(n, k)=n!/(k!*(n-k)!) for
+     * each edge in the UD slice and sum them up to get the UD slice. Order of UD slice edges is not important.
+     */
+    uint32_t getUDSlice() const;
+
+    /*!
+     * Sets one of the possible edge positions of the cube based on a given UD slice.
+     * Note: It sets only the positions of edges coming from the UD slice and sets other edges permutation to 0.
+     */
+    void setEdgePosFromUDSlice(uint32_t udSlice);
+
     void printCube() const;
 
-    static constexpr uint8_t CORNER_COUNT = 8;
-    static constexpr uint8_t EDGE_COUNT = 12;
+    static constexpr size_t CORNER_COUNT = 8;
+    static constexpr size_t EDGE_COUNT = 12;
+    static constexpr size_t SLICE_EDGE_COUNT = 4; // FL, FR, BL, BR
 
 private:
     std::array<uint8_t, CORNER_COUNT> _cornerPerm;
@@ -75,4 +114,10 @@ private:
      * _edgeOrient[0] tells orientation of an edge that is currently in position 0 (UF), etc.
      */
     std::array<uint8_t, EDGE_COUNT> _edgeOrient;
+
+    /*!
+     * Precomputed values for C(n, k) = n! / (k! * (n - k)!)
+     * It is needed for calculating the UD slice permutation.
+     */
+    std::array<std::array<uint32_t, SLICE_EDGE_COUNT + 1>, EDGE_COUNT> _CValues;
 };
