@@ -1,0 +1,111 @@
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: Latest
+
+UseTab: Never
+ColumnLimit: 125
+IndentWidth: 4
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+IndentWrappedFunctionNames: true
+AccessModifierOffset: -4
+
+#These are options from RED/master branch
+#AllowShortBlocksOnASingleLine: true
+#AllowShortCaseLabelsOnASingleLine: true
+#AllowShortFunctionsOnASingleLine: true
+#AllowShortIfStatementsOnASingleLine: true
+#InsertBraces: true
+
+# Break before binary ops that aren't an assignment:
+# LooooooooooongType loooooooooooooooooooooongVariable =
+#     someLooooooooooooooooongFunction();
+#
+# bool value = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+#                      + aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+#                  == aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+#              && aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+#                     > ccccccccccccccccccccccccccccccccccccccccc;
+#BreakBeforeBinaryOperators: NonAssignment
+
+#BreakBeforeBraces: Custom
+#BraceWrapping:
+#  AfterClass: true
+#  AfterControlStatement: false
+#  AfterEnum: true
+#  AfterExternBlock: false
+#  AfterFunction: true
+#  AfterNamespace: true
+#  AfterStruct: false
+#  AfterUnion: false
+#  BeforeCatch: true
+#  BeforeElse: true
+#  SplitEmptyFunction: false
+#  SplitEmptyRecord: false
+
+# Arguments should be all on one line, or all on their own lines.
+# This makes it clear that they're a visually unified list of things.
+# And don't align them all on the right, after the `(`.
+# This forces you to reflow all of the items whenever you rename a function
+# https://youtu.be/ZsHMHukIlJY?t=977
+
+#AlignAfterOpenBracket: AlwaysBreak
+#AlignConsecutiveAssignments: false
+#AlignConsecutiveDeclarations: false
+#ConstructorInitializerAllOnOneLineOrOnePerLine: true
+#AllowAllParametersOfDeclarationOnNextLine: true
+#################
+AlignAfterOpenBracket: Align
+BinPackArguments: false
+BinPackParameters: false
+
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlinesLeft: true
+AlignOperands: true
+AlignTrailingComments: true
+AlignArrayOfStructures: Left
+AlignConsecutiveMacros: false
+AlignEscapedNewlines: Left
+
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: None
+AllowShortLoopsOnASingleLine: false
+
+PointerAlignment: Left
+PackConstructorInitializers: Never
+
+AlwaysBreakTemplateDeclarations: true
+BreakBeforeBraces: Allman
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
+
+PenaltyBreakAssignment: 10
+PenaltyBreakBeforeFirstCallParameter: 10
+PenaltyBreakComment: 10
+PenaltyBreakFirstLessLess: 10
+PenaltyBreakString: 10
+PenaltyBreakTemplateDeclaration: 10
+PenaltyExcessCharacter: 10
+PenaltyReturnTypeOnItsOwnLine: 1000
+
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpacesInCStyleCastParentheses: false
+
+SortUsingDeclarations: true
+SortIncludes: CaseInsensitive
+
+EmptyLineBeforeAccessModifier: Always
+FixNamespaceComments: true
+IncludeBlocks: Regroup
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+ReflowComments: true

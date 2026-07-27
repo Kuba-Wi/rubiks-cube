@@ -8,11 +8,11 @@
  *
  * Indexes of corners are as follows:
  * 0: UFL,      4: DFL,
- * 1: UFR,      5: DFR, 
+ * 1: UFR,      5: DFR,
  * 2: UBR,      6: DBR,
  * 3: UBL,      7: DRL
  * Indexes of edges are as follows:
- * 0: UF,       6: BR, 
+ * 0: UF,       6: BR,
  * 1: UR,       7: BL,
  * 2: UB,       8: FD,
  * 3: UL,       9: RD,
