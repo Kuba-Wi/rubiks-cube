@@ -11,8 +11,13 @@ int main()
     cube.moveFPrime();
     cube.moveBPrime();
 
-    cube.printCube();
     cube.getUDSlice();
+
+    cube.buildFlipMovesTable();
+    cube.buildTwistMovesTable();
+    cube.buildUDSliceMovesTable();
+
+    cube.printCube();
 
     return 0;
 }

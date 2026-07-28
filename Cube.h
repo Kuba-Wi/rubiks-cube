@@ -2,6 +2,8 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
+#include <unordered_map>
 
 /*!
  * @brief Class representing a Rubik's Cube.
@@ -18,6 +20,14 @@
  * 3: UL,       9: RD,
  * 4: FL,       10: BD,
  * 5: FR,       11: LD,
+ *
+ * In moving tables, the order of moves is as follows:
+ * 0: U,    6: F,   12: R,
+ * 1: U',   7: F',  13: R',
+ * 2: 2U,   8: 2F,  14: 2R,
+ * 3: D,    9: B,   15: L,
+ * 4: D',   10: B', 16: L',
+ * 5: 2D,   11: 2B, 17: 2L
  */
 class Cube
 {
@@ -80,6 +90,8 @@ public:
      * The position is calculated as follows:
      * We find positions (n: range 0-11) of the edges (k: range 0-3) and calculate Newton symbol C(n, k)=n!/(k!*(n-k)!) for
      * each edge in the UD slice and sum them up to get the UD slice. Order of UD slice edges is not important.
+     * The UDSlice is a number between 0 and 494, where 0 represents all edges put in the positions with the lowest indices
+     * (UF, UR, UB, UL) and 494 represents all edges put in the positions with the highest indices (LD, BD, RD, FD).
      */
     uint32_t getUDSlice() const;
 
@@ -89,13 +101,24 @@ public:
      */
     void setEdgePosFromUDSlice(uint32_t udSlice);
 
+    void buildTwistMovesTable();
+    void buildFlipMovesTable();
+    void buildUDSliceMovesTable();
+
     void printCube() const;
 
     static constexpr size_t CORNER_COUNT = 8;
     static constexpr size_t EDGE_COUNT = 12;
     static constexpr size_t SLICE_EDGE_COUNT = 4; // FL, FR, BL, BR
+    static constexpr size_t TWIST_COUNT = 2187;   // 3^7
+    static constexpr size_t FLIP_COUNT = 2048;    // 2^11
+    static constexpr size_t UDSLICE_COUNT = 495;  // C(12, 4)
+    static constexpr size_t MOVES_COUNT = 18;     // U, U', 2U, D, D', 2D, F, F', 2F, B, B', 2B, R, R', 2R, L, L', 2L
 
 private:
+    // Move functions mapped by their corresponding move index
+    std::unordered_map<size_t, std::function<void()>> _moveFunctions;
+
     std::array<uint8_t, CORNER_COUNT> _cornerPerm;
 
     /*!
@@ -120,4 +143,12 @@ private:
      * It is needed for calculating the UD slice permutation.
      */
     std::array<std::array<uint32_t, SLICE_EDGE_COUNT + 1>, EDGE_COUNT> _CValues;
+
+    /*!
+     * Precomputed moves for each twist of the cube.
+     * _twistMovesTable[0][0] says what will be a new twist of a cube after applying move 0 (U) to a cube with twist 0.
+     */
+    std::array<std::array<uint32_t, MOVES_COUNT>, TWIST_COUNT> _twistMovesTable;
+    std::array<std::array<uint32_t, MOVES_COUNT>, FLIP_COUNT> _flipMovesTable;
+    std::array<std::array<uint32_t, MOVES_COUNT>, UDSLICE_COUNT> _udSliceMovesTable;
 };
