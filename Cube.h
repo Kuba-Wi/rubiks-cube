@@ -108,9 +108,8 @@ public:
     void buildFlipMovesTable();
     void buildUDSliceMovesTable();
 
-    void buildTwistPtb();
-    void buildFlipPtb();
-    void buildUDSlicePtb();
+    void buildTwistSlicePtb();
+    void buildFlipSlicePtb();
 
     void printCube() const;
 
@@ -123,31 +122,6 @@ public:
     static constexpr size_t MOVES_COUNT = 18;     // U, U', 2U, D, D', 2D, F, F', 2F, B, B', 2B, R, R', 2R, L, L', 2L
 
 private:
-    template <typename TPtb, typename TMovesTable>
-    void buildPtb(TPtb& ptb, const TMovesTable& movesTable, uint32_t initialSolvedState)
-    {
-        constexpr uint32_t notSetValue = std::numeric_limits<uint32_t>::max();
-        std::fill(ptb.begin(), ptb.end(), notSetValue);
-        uint32_t currentState = initialSolvedState;
-        ptb[currentState] = 0; // The solved state has a distance of 0
-        uint32_t nextState;
-        std::vector<uint32_t> nextStates(1, currentState);
-        while (!nextStates.empty())
-        {
-            currentState = nextStates.front();
-            nextStates.erase(nextStates.begin());
-            for (size_t move = 0; move < MOVES_COUNT; ++move)
-            {
-                nextState = movesTable[currentState][move];
-                if (ptb[nextState] == notSetValue)
-                {
-                    ptb[nextState] = ptb[currentState] + 1;
-                    nextStates.push_back(nextState);
-                }
-            }
-        }
-    }
-
     // Move functions mapped by their corresponding move index
     std::unordered_map<size_t, std::function<void()>> _moveFunctions;
 
@@ -186,9 +160,8 @@ private:
 
     /*!
      * Precomputed table for pruning the twist of the cube
-     * _twistPtb[twist] gives the distance from the solved cube to a cube with a given twist.
+     * _twistSlicePtb[twist][udSlice] gives the distance from the solved cube to a cube with a given twist and UD slice.
      */
-    std::array<uint32_t, TWIST_COUNT> _twistPtb;
-    std::array<uint32_t, FLIP_COUNT> _flipPtb;
-    std::array<uint32_t, UDSLICE_COUNT> _udSlicePtb;
+    std::vector<std::vector<uint8_t>> _twistSlicePtb;
+    std::vector<std::vector<uint8_t>> _flipSlicePtb;
 };

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
+#include <queue>
 
 Cube::Cube()
 {
@@ -556,25 +557,72 @@ void Cube::buildUDSliceMovesTable()
     }
 }
 
-void Cube::buildTwistPtb()
+void Cube::buildTwistSlicePtb()
 {
+    constexpr uint8_t notSetValue = std::numeric_limits<uint8_t>::max();
     resetCubeToSolved();
-    uint32_t currentTwist = getTwist();
-    buildPtb(_twistPtb, _twistMovesTable, currentTwist);
+    uint32_t initialTwist = getTwist();
+    uint32_t inititalUDSlice = getUDSlice();
+
+    _twistSlicePtb.resize(TWIST_COUNT);
+    for (auto& row : _twistSlicePtb)
+    {
+        row.resize(UDSLICE_COUNT);
+        std::fill(row.begin(), row.end(), notSetValue);
+    }
+
+    _twistSlicePtb[initialTwist][inititalUDSlice] = 0; // The solved state has a distance of 0
+    std::queue<std::pair<uint32_t, uint32_t>> nextStates;
+    nextStates.push({initialTwist, inititalUDSlice});
+    while (!nextStates.empty())
+    {
+        auto [currentTwist, currentUDSlice] = nextStates.front();
+        nextStates.pop();
+        for (size_t move = 0; move < MOVES_COUNT; ++move)
+        {
+            uint32_t nextTwist = _twistMovesTable[currentTwist][move];
+            uint32_t nextUDSlice = _udSliceMovesTable[currentUDSlice][move];
+            if (_twistSlicePtb[nextTwist][nextUDSlice] == notSetValue)
+            {
+                _twistSlicePtb[nextTwist][nextUDSlice] = _twistSlicePtb[currentTwist][currentUDSlice] + 1;
+                nextStates.push({nextTwist, nextUDSlice});
+            }
+        }
+    }
 }
 
-void Cube::buildFlipPtb()
+void Cube::buildFlipSlicePtb()
 {
+    constexpr uint8_t notSetValue = std::numeric_limits<uint8_t>::max();
     resetCubeToSolved();
-    uint32_t currentFlip = getFlip();
-    buildPtb(_flipPtb, _flipMovesTable, currentFlip);
-}
+    uint32_t initialFlip = getFlip();
+    uint32_t initialUDSlice = getUDSlice();
 
-void Cube::buildUDSlicePtb()
-{
-    resetCubeToSolved();
-    uint32_t currentUDSlice = getUDSlice();
-    buildPtb(_udSlicePtb, _udSliceMovesTable, currentUDSlice);
+    _flipSlicePtb.resize(FLIP_COUNT);
+    for (auto& row : _flipSlicePtb)
+    {
+        row.resize(UDSLICE_COUNT);
+        std::fill(row.begin(), row.end(), notSetValue);
+    }
+
+    _flipSlicePtb[initialFlip][initialUDSlice] = 0; // The solved state has a distance of 0
+    std::queue<std::pair<uint32_t, uint32_t>> nextStates;
+    nextStates.push({initialFlip, initialUDSlice});
+    while (!nextStates.empty())
+    {
+        auto [currentFlip, currentUDSlice] = nextStates.front();
+        nextStates.pop();
+        for (size_t move = 0; move < MOVES_COUNT; ++move)
+        {
+            uint32_t nextFlip = _flipMovesTable[currentFlip][move];
+            uint32_t nextUDSlice = _udSliceMovesTable[currentUDSlice][move];
+            if (_flipSlicePtb[nextFlip][nextUDSlice] == notSetValue)
+            {
+                _flipSlicePtb[nextFlip][nextUDSlice] = _flipSlicePtb[currentFlip][currentUDSlice] + 1;
+                nextStates.push({nextFlip, nextUDSlice});
+            }
+        }
+    }
 }
 
 void Cube::printCube() const
