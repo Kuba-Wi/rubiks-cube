@@ -1,15 +1,12 @@
 #include "Cube.h"
 
+#include <algorithm>
 #include <iostream>
 #include <numeric>
 
 Cube::Cube()
 {
-    _cornerOrient.fill(0);
-    _edgeOrient.fill(0);
-
-    std::iota(_cornerPerm.begin(), _cornerPerm.end(), 0);
-    std::iota(_edgePerm.begin(), _edgePerm.end(), 0);
+    resetCubeToSolved();
 
     for (size_t n = 0; n < EDGE_COUNT; ++n)
     {
@@ -51,6 +48,15 @@ Cube::Cube()
         {17, [this]() { move2L(); }}
     };
     // clang-format on
+}
+
+void Cube::resetCubeToSolved()
+{
+    _cornerOrient.fill(0);
+    _edgeOrient.fill(0);
+
+    std::iota(_cornerPerm.begin(), _cornerPerm.end(), 0);
+    std::iota(_edgePerm.begin(), _edgePerm.end(), 0);
 }
 
 void Cube::moveU()
@@ -539,15 +545,6 @@ void Cube::buildFlipMovesTable()
 
 void Cube::buildUDSliceMovesTable()
 {
-    // auto printEdgePerm = [this]() {
-    //     std::cout << "Edge Permutation:\n";
-    //     for (const auto& edge : _edgePerm)
-    //     {
-    //         std::cout << static_cast<int>(edge) << " ";
-    //     }
-    //     std::cout << std::endl;
-    // };
-
     for (uint32_t udSlice = 0; udSlice < UDSLICE_COUNT; ++udSlice)
     {
         for (size_t move = 0; move < MOVES_COUNT; ++move)
@@ -555,20 +552,29 @@ void Cube::buildUDSliceMovesTable()
             setEdgePosFromUDSlice(udSlice);
             _moveFunctions[move]();
             _udSliceMovesTable[udSlice][move] = getUDSlice();
-            // if (udSlice == 494 && move == 5)
-            // {
-            //     std::cout << "Before move 2D on UDSlice 494:\n";
-            //     printEdgePerm();
-            // }
-
-            // if (udSlice == 494 && move == 5)
-            // {
-            //     std::cout << "After move 2D on UDSlice 494:\n";
-            //     printEdgePerm();
-            //     std::cout << "New UDSlice: " << getUDSlice() << std::endl;
-            // }
         }
     }
+}
+
+void Cube::buildTwistPtb()
+{
+    resetCubeToSolved();
+    uint32_t currentTwist = getTwist();
+    buildPtb(_twistPtb, _twistMovesTable, currentTwist);
+}
+
+void Cube::buildFlipPtb()
+{
+    resetCubeToSolved();
+    uint32_t currentFlip = getFlip();
+    buildPtb(_flipPtb, _flipMovesTable, currentFlip);
+}
+
+void Cube::buildUDSlicePtb()
+{
+    resetCubeToSolved();
+    uint32_t currentUDSlice = getUDSlice();
+    buildPtb(_udSlicePtb, _udSliceMovesTable, currentUDSlice);
 }
 
 void Cube::printCube() const

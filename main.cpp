@@ -19,5 +19,9 @@ int main()
 
     cube.printCube();
 
+    cube.buildTwistPtb();
+    cube.buildFlipPtb();
+    cube.buildUDSlicePtb();
+
     return 0;
 }
