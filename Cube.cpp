@@ -29,26 +29,32 @@ Cube::Cube()
     // clang-format off
     _moveFunctions =
     {
-        {0, [this]() { moveU(); }},
-        {1, [this]() { moveUPrime(); }},
-        {2, [this]() { move2U(); }},
-        {3, [this]() { moveD(); }},
-        {4, [this]() { moveDPrime(); }},
-        {5, [this]() { move2D(); }},
-        {6, [this]() { moveF(); }},
-        {7, [this]() { moveFPrime(); }},
-        {8, [this]() { move2F(); }},
-        {9, [this]() { moveB(); }},
-        {10, [this]() { moveBPrime(); }},
-        {11, [this]() { move2B(); }},
-        {12, [this]() { moveR(); }},
-        {13, [this]() { moveRPrime(); }},
-        {14, [this]() { move2R(); }},
-        {15, [this]() { moveL(); }},
-        {16, [this]() { moveLPrime(); }},
-        {17, [this]() { move2L(); }}
+        {Move::U, [this]() { moveU(); }},
+        {Move::UPrime, [this]() { moveUPrime(); }},
+        {Move::DoubleU, [this]() { move2U(); }},
+        {Move::D, [this]() { moveD(); }},
+        {Move::DPrime, [this]() { moveDPrime(); }},
+        {Move::DoubleD, [this]() { move2D(); }},
+        {Move::F, [this]() { moveF(); }},
+        {Move::FPrime, [this]() { moveFPrime(); }},
+        {Move::DoubleF, [this]() { move2F(); }},
+        {Move::B, [this]() { moveB(); }},
+        {Move::BPrime, [this]() { moveBPrime(); }},
+        {Move::DoubleB, [this]() { move2B(); }},
+        {Move::R, [this]() { moveR(); }},
+        {Move::RPrime, [this]() { moveRPrime(); }},
+        {Move::DoubleR, [this]() { move2R(); }},
+        {Move::L, [this]() { moveL(); }},
+        {Move::LPrime, [this]() { moveLPrime(); }},
+        {Move::DoubleL, [this]() { move2L(); }}
     };
     // clang-format on
+
+    buildFlipMovesTable();
+    buildTwistMovesTable();
+    buildUDSliceMovesTable();
+    buildTwistSlicePtb();
+    buildFlipSlicePtb();
 }
 
 void Cube::resetCubeToSolved()
@@ -522,7 +528,7 @@ void Cube::buildTwistMovesTable()
 {
     for (uint32_t twist = 0; twist < TWIST_COUNT; ++twist)
     {
-        for (size_t move = 0; move < MOVES_COUNT; ++move)
+        for (size_t move = 0; move < Move::MovesCount; ++move)
         {
             setCornerOrientFromTwist(twist);
             _moveFunctions[move]();
@@ -535,7 +541,7 @@ void Cube::buildFlipMovesTable()
 {
     for (uint32_t flip = 0; flip < FLIP_COUNT; ++flip)
     {
-        for (size_t move = 0; move < MOVES_COUNT; ++move)
+        for (size_t move = 0; move < Move::MovesCount; ++move)
         {
             setEdgeOrientFromFlip(flip);
             _moveFunctions[move]();
@@ -548,7 +554,7 @@ void Cube::buildUDSliceMovesTable()
 {
     for (uint32_t udSlice = 0; udSlice < UDSLICE_COUNT; ++udSlice)
     {
-        for (size_t move = 0; move < MOVES_COUNT; ++move)
+        for (size_t move = 0; move < Move::MovesCount; ++move)
         {
             setEdgePosFromUDSlice(udSlice);
             _moveFunctions[move]();
@@ -578,7 +584,7 @@ void Cube::buildTwistSlicePtb()
     {
         auto [currentTwist, currentUDSlice] = nextStates.front();
         nextStates.pop();
-        for (size_t move = 0; move < MOVES_COUNT; ++move)
+        for (size_t move = 0; move < Move::MovesCount; ++move)
         {
             uint32_t nextTwist = _twistMovesTable[currentTwist][move];
             uint32_t nextUDSlice = _udSliceMovesTable[currentUDSlice][move];
@@ -612,7 +618,7 @@ void Cube::buildFlipSlicePtb()
     {
         auto [currentFlip, currentUDSlice] = nextStates.front();
         nextStates.pop();
-        for (size_t move = 0; move < MOVES_COUNT; ++move)
+        for (size_t move = 0; move < Move::MovesCount; ++move)
         {
             uint32_t nextFlip = _flipMovesTable[currentFlip][move];
             uint32_t nextUDSlice = _udSliceMovesTable[currentUDSlice][move];
@@ -622,6 +628,122 @@ void Cube::buildFlipSlicePtb()
                 nextStates.push({nextFlip, nextUDSlice});
             }
         }
+    }
+}
+
+void Cube::findMovesToG1State()
+{
+    uint32_t currentTwist = getTwist();
+    uint32_t currentFlip = getFlip();
+    uint32_t currentUDSlice = getUDSlice();
+    uint8_t currentLimit = std::max(_twistSlicePtb[currentTwist][currentUDSlice], _flipSlicePtb[currentFlip][currentUDSlice]);
+    uint8_t depth = 0;
+    std::vector<Move> movesSequence;
+    while (true)
+    {
+        auto [result, resultMovesSequence] =
+            searchStatesToGetToG1State(currentTwist, currentFlip, currentUDSlice, depth, currentLimit, movesSequence);
+        if (result == 0)
+        {
+            for (Move move : resultMovesSequence)
+            {
+                std::cout << "Move: " << moveToString(move) << std::endl;
+                _moveFunctions[move]();
+            }
+            return;
+        }
+        currentLimit = result;
+    }
+}
+
+std::pair<uint8_t, std::vector<Cube::Move>> Cube::searchStatesToGetToG1State(uint32_t currentTwist,
+                                                                             uint32_t currentFlip,
+                                                                             uint32_t currentUDSlice,
+                                                                             uint8_t depth,
+                                                                             uint8_t currentLimit,
+                                                                             std::vector<Move> movesSequence)
+{
+    uint8_t value = std::max(_twistSlicePtb[currentTwist][currentUDSlice], _flipSlicePtb[currentFlip][currentUDSlice]);
+    if (value == 0)
+    {
+        return {value, movesSequence};
+    }
+    value += depth;
+    if (value > currentLimit)
+    {
+        return {value, {}};
+    }
+
+    uint8_t minResult = std::numeric_limits<uint8_t>::max();
+    std::vector<Move> bestMovesSequence; // moves sequence that leads to the state with minResult value
+    uint32_t nextTwist;
+    uint32_t nextFlip;
+    uint32_t nextUDSlice;
+    for (size_t move = 0; move < Move::MovesCount; ++move)
+    {
+        nextTwist = _twistMovesTable[currentTwist][move];
+        nextFlip = _flipMovesTable[currentFlip][move];
+        nextUDSlice = _udSliceMovesTable[currentUDSlice][move];
+
+        movesSequence.push_back(static_cast<Move>(move));
+        auto [tmpResult, tmpMovesSequence] =
+            searchStatesToGetToG1State(nextTwist, nextFlip, nextUDSlice, depth + 1, currentLimit, movesSequence);
+        if (tmpResult == 0)
+        {
+            return {tmpResult, tmpMovesSequence};
+        }
+        if (tmpResult < minResult)
+        {
+            minResult = tmpResult;
+            bestMovesSequence = movesSequence;
+        }
+        movesSequence.pop_back();
+    }
+    return {minResult, bestMovesSequence};
+}
+
+std::string Cube::moveToString(Move move) const
+{
+    switch (move)
+    {
+        case Move::U:
+            return "U";
+        case Move::UPrime:
+            return "U'";
+        case Move::DoubleU:
+            return "U2";
+        case Move::D:
+            return "D";
+        case Move::DPrime:
+            return "D'";
+        case Move::DoubleD:
+            return "D2";
+        case Move::F:
+            return "F";
+        case Move::FPrime:
+            return "F'";
+        case Move::DoubleF:
+            return "F2";
+        case Move::B:
+            return "B";
+        case Move::BPrime:
+            return "B'";
+        case Move::DoubleB:
+            return "B2";
+        case Move::R:
+            return "R";
+        case Move::RPrime:
+            return "R'";
+        case Move::DoubleR:
+            return "R2";
+        case Move::L:
+            return "L";
+        case Move::LPrime:
+            return "L'";
+        case Move::DoubleL:
+            return "L2";
+        default:
+            return "";
     }
 }
 

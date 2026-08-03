@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
-#include <unordered_map>
+#include <map>
+#include <string>
 
 /*!
  * @brief Class representing a Rubik's Cube.
@@ -21,17 +22,32 @@
  * 3: UL,       9: RD,
  * 4: FL,       10: BD,
  * 5: FR,       11: LD,
- *
- * In moving tables, the order of moves is as follows:
- * 0: U,    6: F,   12: R,
- * 1: U',   7: F',  13: R',
- * 2: 2U,   8: 2F,  14: 2R,
- * 3: D,    9: B,   15: L,
- * 4: D',   10: B', 16: L',
- * 5: 2D,   11: 2B, 17: 2L
  */
 class Cube
 {
+    enum Move : size_t
+    {
+        U = 0,
+        UPrime,
+        DoubleU,
+        D,
+        DPrime,
+        DoubleD,
+        F,
+        FPrime,
+        DoubleF,
+        B,
+        BPrime,
+        DoubleB,
+        R,
+        RPrime,
+        DoubleR,
+        L,
+        LPrime,
+        DoubleL,
+        MovesCount
+    };
+
 public:
     Cube();
     ~Cube() = default;
@@ -111,6 +127,14 @@ public:
     void buildTwistSlicePtb();
     void buildFlipSlicePtb();
 
+    /*!
+     * Finds a sequence of moves that brings the cube to a G1 state.
+     * The G1 state is defined as a state where the cube's corners and edges are correctly oriented and the UD slice edges
+     * are all in the UD slice but in any order.
+     * For now it prints the sequence of moves to the console and performs the moves on the cube.
+     */
+    void findMovesToG1State();
+
     void printCube() const;
 
     static constexpr size_t CORNER_COUNT = 8;
@@ -119,11 +143,26 @@ public:
     static constexpr size_t TWIST_COUNT = 2187;   // 3^7
     static constexpr size_t FLIP_COUNT = 2048;    // 2^11
     static constexpr size_t UDSLICE_COUNT = 495;  // C(12, 4)
-    static constexpr size_t MOVES_COUNT = 18;     // U, U', 2U, D, D', 2D, F, F', 2F, B, B', 2B, R, R', 2R, L, L', 2L
 
 private:
+    /*!
+     * Searches for a sequence of moves that brings the cube to a G1 state.
+     * Returns a pair consisting of the distance of state A from the G1 state and the corresponding moves sequence to reach
+     * state A. It returns the smallest possible distance and the corresponding moves sequence among all possible moves from
+     * the current state with a given search depth limitation and currentLimit (the maximum distance of state A from the G1
+     * state).
+     */
+    std::pair<uint8_t, std::vector<Move>> searchStatesToGetToG1State(uint32_t currentTwist,
+                                                                     uint32_t currentFlip,
+                                                                     uint32_t currentUDSlice,
+                                                                     uint8_t depth,
+                                                                     uint8_t currentLimit,
+                                                                     std::vector<Move> movesSequence);
+
+    std::string moveToString(Move move) const;
+
     // Move functions mapped by their corresponding move index
-    std::unordered_map<size_t, std::function<void()>> _moveFunctions;
+    std::map<size_t, std::function<void()>> _moveFunctions;
 
     std::array<uint8_t, CORNER_COUNT> _cornerPerm;
 
@@ -154,9 +193,9 @@ private:
      * Precomputed moves for each twist of the cube.
      * _twistMovesTable[0][0] says what will be a new twist of a cube after applying move 0 (U) to a cube with twist 0.
      */
-    std::array<std::array<uint32_t, MOVES_COUNT>, TWIST_COUNT> _twistMovesTable;
-    std::array<std::array<uint32_t, MOVES_COUNT>, FLIP_COUNT> _flipMovesTable;
-    std::array<std::array<uint32_t, MOVES_COUNT>, UDSLICE_COUNT> _udSliceMovesTable;
+    std::array<std::array<uint32_t, Move::MovesCount>, TWIST_COUNT> _twistMovesTable;
+    std::array<std::array<uint32_t, Move::MovesCount>, FLIP_COUNT> _flipMovesTable;
+    std::array<std::array<uint32_t, Move::MovesCount>, UDSLICE_COUNT> _udSliceMovesTable;
 
     /*!
      * Precomputed table for pruning the twist of the cube
