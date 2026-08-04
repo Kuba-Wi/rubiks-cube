@@ -9,7 +9,7 @@ Cube::Cube()
 {
     resetCubeToSolved();
 
-    for (size_t n = 0; n < EDGE_COUNT; ++n)
+    for (size_t n = 0; n < Edge::EdgesCount; ++n)
     {
         _CValues[n][0] = 1;
     }
@@ -18,7 +18,7 @@ Cube::Cube()
         _CValues[0][k] = 0;
     }
 
-    for (size_t n = 1; n < EDGE_COUNT; ++n)
+    for (size_t n = 1; n < Edge::EdgesCount; ++n)
     {
         for (size_t k = 1; k <= SLICE_EDGE_COUNT; ++k)
         {
@@ -68,56 +68,56 @@ void Cube::resetCubeToSolved()
 
 void Cube::moveU()
 {
-    const uint8_t tempCornPerm0 = _cornerPerm[0];
-    _cornerPerm[0] = _cornerPerm[1];
-    _cornerPerm[1] = _cornerPerm[2];
-    _cornerPerm[2] = _cornerPerm[3];
-    _cornerPerm[3] = tempCornPerm0;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::UFL];
+    _cornerPerm[Corner::UFL] = _cornerPerm[Corner::UFR];
+    _cornerPerm[Corner::UFR] = _cornerPerm[Corner::UBR];
+    _cornerPerm[Corner::UBR] = _cornerPerm[Corner::UBL];
+    _cornerPerm[Corner::UBL] = tempCornPerm;
 
-    const uint8_t tempCornOri0 = _cornerOrient[0];
-    _cornerOrient[0] = _cornerOrient[1];
-    _cornerOrient[1] = _cornerOrient[2];
-    _cornerOrient[2] = _cornerOrient[3];
-    _cornerOrient[3] = tempCornOri0;
+    const uint8_t tempCornOri = _cornerOrient[Corner::UFL];
+    _cornerOrient[Corner::UFL] = _cornerOrient[Corner::UFR];
+    _cornerOrient[Corner::UFR] = _cornerOrient[Corner::UBR];
+    _cornerOrient[Corner::UBR] = _cornerOrient[Corner::UBL];
+    _cornerOrient[Corner::UBL] = tempCornOri;
 
-    const uint8_t tempEdgePerm0 = _edgePerm[0];
-    _edgePerm[0] = _edgePerm[1];
-    _edgePerm[1] = _edgePerm[2];
-    _edgePerm[2] = _edgePerm[3];
-    _edgePerm[3] = tempEdgePerm0;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::UF];
+    _edgePerm[Edge::UF] = _edgePerm[Edge::UR];
+    _edgePerm[Edge::UR] = _edgePerm[Edge::UB];
+    _edgePerm[Edge::UB] = _edgePerm[Edge::UL];
+    _edgePerm[Edge::UL] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri0 = _edgeOrient[0];
-    _edgeOrient[0] = _edgeOrient[1];
-    _edgeOrient[1] = _edgeOrient[2];
-    _edgeOrient[2] = _edgeOrient[3];
-    _edgeOrient[3] = tempEdgeOri0;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::UF];
+    _edgeOrient[Edge::UF] = _edgeOrient[Edge::UR];
+    _edgeOrient[Edge::UR] = _edgeOrient[Edge::UB];
+    _edgeOrient[Edge::UB] = _edgeOrient[Edge::UL];
+    _edgeOrient[Edge::UL] = tempEdgeOri;
 }
 
 void Cube::moveUPrime()
 {
-    const uint8_t tempCornPerm3 = _cornerPerm[3];
-    _cornerPerm[3] = _cornerPerm[2];
-    _cornerPerm[2] = _cornerPerm[1];
-    _cornerPerm[1] = _cornerPerm[0];
-    _cornerPerm[0] = tempCornPerm3;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::UBL];
+    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::UBR];
+    _cornerPerm[Corner::UBR] = _cornerPerm[Corner::UFR];
+    _cornerPerm[Corner::UFR] = _cornerPerm[Corner::UFL];
+    _cornerPerm[Corner::UFL] = tempCornPerm;
 
-    const uint8_t tempCornOri3 = _cornerOrient[3];
-    _cornerOrient[3] = _cornerOrient[2];
-    _cornerOrient[2] = _cornerOrient[1];
-    _cornerOrient[1] = _cornerOrient[0];
-    _cornerOrient[0] = tempCornOri3;
+    const uint8_t tempCornOri = _cornerOrient[Corner::UBL];
+    _cornerOrient[Corner::UBL] = _cornerOrient[Corner::UBR];
+    _cornerOrient[Corner::UBR] = _cornerOrient[Corner::UFR];
+    _cornerOrient[Corner::UFR] = _cornerOrient[Corner::UFL];
+    _cornerOrient[Corner::UFL] = tempCornOri;
 
-    const uint8_t tempEdgePerm3 = _edgePerm[3];
-    _edgePerm[3] = _edgePerm[2];
-    _edgePerm[2] = _edgePerm[1];
-    _edgePerm[1] = _edgePerm[0];
-    _edgePerm[0] = tempEdgePerm3;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::UL];
+    _edgePerm[Edge::UL] = _edgePerm[Edge::UB];
+    _edgePerm[Edge::UB] = _edgePerm[Edge::UR];
+    _edgePerm[Edge::UR] = _edgePerm[Edge::UF];
+    _edgePerm[Edge::UF] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri3 = _edgeOrient[3];
-    _edgeOrient[3] = _edgeOrient[2];
-    _edgeOrient[2] = _edgeOrient[1];
-    _edgeOrient[1] = _edgeOrient[0];
-    _edgeOrient[0] = tempEdgeOri3;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::UL];
+    _edgeOrient[Edge::UL] = _edgeOrient[Edge::UB];
+    _edgeOrient[Edge::UB] = _edgeOrient[Edge::UR];
+    _edgeOrient[Edge::UR] = _edgeOrient[Edge::UF];
+    _edgeOrient[Edge::UF] = tempEdgeOri;
 }
 
 void Cube::move2U()
@@ -128,56 +128,56 @@ void Cube::move2U()
 
 void Cube::moveD()
 {
-    const uint8_t tempCornPerm6 = _cornerPerm[6];
-    _cornerPerm[6] = _cornerPerm[5];
-    _cornerPerm[5] = _cornerPerm[4];
-    _cornerPerm[4] = _cornerPerm[7];
-    _cornerPerm[7] = tempCornPerm6;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::DBR];
+    _cornerPerm[Corner::DBR] = _cornerPerm[Corner::DFR];
+    _cornerPerm[Corner::DFR] = _cornerPerm[Corner::DFL];
+    _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DRL];
+    _cornerPerm[Corner::DRL] = tempCornPerm;
 
-    const uint8_t tempCornOri6 = _cornerOrient[6];
-    _cornerOrient[6] = _cornerOrient[5];
-    _cornerOrient[5] = _cornerOrient[4];
-    _cornerOrient[4] = _cornerOrient[7];
-    _cornerOrient[7] = tempCornOri6;
+    const uint8_t tempCornOri = _cornerOrient[Corner::DBR];
+    _cornerOrient[Corner::DBR] = _cornerOrient[Corner::DFR];
+    _cornerOrient[Corner::DFR] = _cornerOrient[Corner::DFL];
+    _cornerOrient[Corner::DFL] = _cornerOrient[Corner::DRL];
+    _cornerOrient[Corner::DRL] = tempCornOri;
 
-    const uint8_t tempEdgePerm10 = _edgePerm[10];
-    _edgePerm[10] = _edgePerm[9];
-    _edgePerm[9] = _edgePerm[8];
-    _edgePerm[8] = _edgePerm[11];
-    _edgePerm[11] = tempEdgePerm10;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::BD];
+    _edgePerm[Edge::BD] = _edgePerm[Edge::RD];
+    _edgePerm[Edge::RD] = _edgePerm[Edge::FD];
+    _edgePerm[Edge::FD] = _edgePerm[Edge::LD];
+    _edgePerm[Edge::LD] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri10 = _edgeOrient[10];
-    _edgeOrient[10] = _edgeOrient[9];
-    _edgeOrient[9] = _edgeOrient[8];
-    _edgeOrient[8] = _edgeOrient[11];
-    _edgeOrient[11] = tempEdgeOri10;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::BD];
+    _edgeOrient[Edge::BD] = _edgeOrient[Edge::RD];
+    _edgeOrient[Edge::RD] = _edgeOrient[Edge::FD];
+    _edgeOrient[Edge::FD] = _edgeOrient[Edge::LD];
+    _edgeOrient[Edge::LD] = tempEdgeOri;
 }
 
 void Cube::moveDPrime()
 {
-    const uint8_t tempCornPerm7 = _cornerPerm[7];
-    _cornerPerm[7] = _cornerPerm[4];
-    _cornerPerm[4] = _cornerPerm[5];
-    _cornerPerm[5] = _cornerPerm[6];
-    _cornerPerm[6] = tempCornPerm7;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::DRL];
+    _cornerPerm[Corner::DRL] = _cornerPerm[Corner::DFL];
+    _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DFR];
+    _cornerPerm[Corner::DFR] = _cornerPerm[Corner::DBR];
+    _cornerPerm[Corner::DBR] = tempCornPerm;
 
-    const uint8_t tempCornOri7 = _cornerOrient[7];
-    _cornerOrient[7] = _cornerOrient[4];
-    _cornerOrient[4] = _cornerOrient[5];
-    _cornerOrient[5] = _cornerOrient[6];
-    _cornerOrient[6] = tempCornOri7;
+    const uint8_t tempCornOri = _cornerOrient[Corner::DRL];
+    _cornerOrient[Corner::DRL] = _cornerOrient[Corner::DFL];
+    _cornerOrient[Corner::DFL] = _cornerOrient[Corner::DFR];
+    _cornerOrient[Corner::DFR] = _cornerOrient[Corner::DBR];
+    _cornerOrient[Corner::DBR] = tempCornOri;
 
-    const uint8_t tempEdgePerm11 = _edgePerm[11];
-    _edgePerm[11] = _edgePerm[8];
-    _edgePerm[8] = _edgePerm[9];
-    _edgePerm[9] = _edgePerm[10];
-    _edgePerm[10] = tempEdgePerm11;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::LD];
+    _edgePerm[Edge::LD] = _edgePerm[Edge::FD];
+    _edgePerm[Edge::FD] = _edgePerm[Edge::RD];
+    _edgePerm[Edge::RD] = _edgePerm[Edge::BD];
+    _edgePerm[Edge::BD] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri11 = _edgeOrient[11];
-    _edgeOrient[11] = _edgeOrient[8];
-    _edgeOrient[8] = _edgeOrient[9];
-    _edgeOrient[9] = _edgeOrient[10];
-    _edgeOrient[10] = tempEdgeOri11;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::LD];
+    _edgeOrient[Edge::LD] = _edgeOrient[Edge::FD];
+    _edgeOrient[Edge::FD] = _edgeOrient[Edge::RD];
+    _edgeOrient[Edge::RD] = _edgeOrient[Edge::BD];
+    _edgeOrient[Edge::BD] = tempEdgeOri;
 }
 
 void Cube::move2D()
@@ -188,56 +188,56 @@ void Cube::move2D()
 
 void Cube::moveF()
 {
-    const uint8_t tempCornPerm4 = _cornerPerm[4];
-    _cornerPerm[4] = _cornerPerm[5];
-    _cornerPerm[5] = _cornerPerm[1];
-    _cornerPerm[1] = _cornerPerm[0];
-    _cornerPerm[0] = tempCornPerm4;
+    const uint8_t tempCornPerm4 = _cornerPerm[Corner::DFL];
+    _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DFR];
+    _cornerPerm[Corner::DFR] = _cornerPerm[Corner::UFR];
+    _cornerPerm[Corner::UFR] = _cornerPerm[Corner::UFL];
+    _cornerPerm[Corner::UFL] = tempCornPerm4;
 
-    const uint8_t tempCornOri5 = _cornerOrient[5];
-    _cornerOrient[5] = static_cast<uint8_t>((_cornerOrient[1] + 2) % 3);
-    _cornerOrient[1] = static_cast<uint8_t>((_cornerOrient[0] + 1) % 3);
-    _cornerOrient[0] = static_cast<uint8_t>((_cornerOrient[4] + 2) % 3);
-    _cornerOrient[4] = static_cast<uint8_t>((tempCornOri5 + 1) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::DFR];
+    _cornerOrient[Corner::DFR] = static_cast<uint8_t>((_cornerOrient[Corner::UFR] + 2) % 3);
+    _cornerOrient[Corner::UFR] = static_cast<uint8_t>((_cornerOrient[Corner::UFL] + 1) % 3);
+    _cornerOrient[Corner::UFL] = static_cast<uint8_t>((_cornerOrient[Corner::DFL] + 2) % 3);
+    _cornerOrient[Corner::DFL] = static_cast<uint8_t>((tempCornOri + 1) % 3);
 
-    const uint8_t tempEdgePerm4 = _edgePerm[4];
-    _edgePerm[4] = _edgePerm[8];
-    _edgePerm[8] = _edgePerm[5];
-    _edgePerm[5] = _edgePerm[0];
-    _edgePerm[0] = tempEdgePerm4;
+    const uint8_t tempEdgePerm4 = _edgePerm[Edge::FL];
+    _edgePerm[Edge::FL] = _edgePerm[Edge::FD];
+    _edgePerm[Edge::FD] = _edgePerm[Edge::FR];
+    _edgePerm[Edge::FR] = _edgePerm[Edge::UF];
+    _edgePerm[Edge::UF] = tempEdgePerm4;
 
-    const uint8_t tempEdgeOri4 = _edgeOrient[4];
-    _edgeOrient[4] = _edgeOrient[8] ^ 1;
-    _edgeOrient[8] = _edgeOrient[5] ^ 1;
-    _edgeOrient[5] = _edgeOrient[0] ^ 1;
-    _edgeOrient[0] = tempEdgeOri4 ^ 1;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::FL];
+    _edgeOrient[Edge::FL] = _edgeOrient[Edge::FD] ^ 1;
+    _edgeOrient[Edge::FD] = _edgeOrient[Edge::FR] ^ 1;
+    _edgeOrient[Edge::FR] = _edgeOrient[Edge::UF] ^ 1;
+    _edgeOrient[Edge::UF] = tempEdgeOri ^ 1;
 }
 
 void Cube::moveFPrime()
 {
-    const uint8_t tempCornPerm0 = _cornerPerm[0];
-    _cornerPerm[0] = _cornerPerm[1];
-    _cornerPerm[1] = _cornerPerm[5];
-    _cornerPerm[5] = _cornerPerm[4];
-    _cornerPerm[4] = tempCornPerm0;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::UFL];
+    _cornerPerm[Corner::UFL] = _cornerPerm[Corner::UFR];
+    _cornerPerm[Corner::UFR] = _cornerPerm[Corner::DFR];
+    _cornerPerm[Corner::DFR] = _cornerPerm[Corner::DFL];
+    _cornerPerm[Corner::DFL] = tempCornPerm;
 
-    const uint8_t tempCornOri0 = _cornerOrient[0];
-    _cornerOrient[0] = static_cast<uint8_t>((_cornerOrient[1] + 2) % 3);
-    _cornerOrient[1] = static_cast<uint8_t>((_cornerOrient[5] + 1) % 3);
-    _cornerOrient[5] = static_cast<uint8_t>((_cornerOrient[4] + 2) % 3);
-    _cornerOrient[4] = static_cast<uint8_t>((tempCornOri0 + 1) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::UFL];
+    _cornerOrient[Corner::UFL] = static_cast<uint8_t>((_cornerOrient[Corner::UFR] + 2) % 3);
+    _cornerOrient[Corner::UFR] = static_cast<uint8_t>((_cornerOrient[Corner::DFR] + 1) % 3);
+    _cornerOrient[Corner::DFR] = static_cast<uint8_t>((_cornerOrient[Corner::DFL] + 2) % 3);
+    _cornerOrient[Corner::DFL] = static_cast<uint8_t>((tempCornOri + 1) % 3);
 
-    const uint8_t tempEdgePerm0 = _edgePerm[0];
-    _edgePerm[0] = _edgePerm[5];
-    _edgePerm[5] = _edgePerm[8];
-    _edgePerm[8] = _edgePerm[4];
-    _edgePerm[4] = tempEdgePerm0;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::UF];
+    _edgePerm[Edge::UF] = _edgePerm[Edge::FR];
+    _edgePerm[Edge::FR] = _edgePerm[Edge::FD];
+    _edgePerm[Edge::FD] = _edgePerm[Edge::FL];
+    _edgePerm[Edge::FL] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri0 = _edgeOrient[0];
-    _edgeOrient[0] = _edgeOrient[5] ^ 1;
-    _edgeOrient[5] = _edgeOrient[8] ^ 1;
-    _edgeOrient[8] = _edgeOrient[4] ^ 1;
-    _edgeOrient[4] = tempEdgeOri0 ^ 1;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::UF];
+    _edgeOrient[Edge::UF] = _edgeOrient[Edge::FR] ^ 1;
+    _edgeOrient[Edge::FR] = _edgeOrient[Edge::FD] ^ 1;
+    _edgeOrient[Edge::FD] = _edgeOrient[Edge::FL] ^ 1;
+    _edgeOrient[Edge::FL] = tempEdgeOri ^ 1;
 }
 
 void Cube::move2F()
@@ -248,56 +248,56 @@ void Cube::move2F()
 
 void Cube::moveB()
 {
-    const uint8_t tempCornPerm7 = _cornerPerm[7];
-    _cornerPerm[7] = _cornerPerm[3];
-    _cornerPerm[3] = _cornerPerm[2];
-    _cornerPerm[2] = _cornerPerm[6];
-    _cornerPerm[6] = tempCornPerm7;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::DRL];
+    _cornerPerm[Corner::DRL] = _cornerPerm[Corner::UBL];
+    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::UBR];
+    _cornerPerm[Corner::UBR] = _cornerPerm[Corner::DBR];
+    _cornerPerm[Corner::DBR] = tempCornPerm;
 
-    const uint8_t tempCornOri7 = _cornerOrient[7];
-    _cornerOrient[7] = static_cast<uint8_t>((_cornerOrient[3] + 2) % 3);
-    _cornerOrient[3] = static_cast<uint8_t>((_cornerOrient[2] + 1) % 3);
-    _cornerOrient[2] = static_cast<uint8_t>((_cornerOrient[6] + 2) % 3);
-    _cornerOrient[6] = static_cast<uint8_t>((tempCornOri7 + 1) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::DRL];
+    _cornerOrient[Corner::DRL] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 2) % 3);
+    _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::UBR] + 1) % 3);
+    _cornerOrient[Corner::UBR] = static_cast<uint8_t>((_cornerOrient[Corner::DBR] + 2) % 3);
+    _cornerOrient[Corner::DBR] = static_cast<uint8_t>((tempCornOri + 1) % 3);
 
-    const uint8_t tempEdgePerm10 = _edgePerm[10];
-    _edgePerm[10] = _edgePerm[7];
-    _edgePerm[7] = _edgePerm[2];
-    _edgePerm[2] = _edgePerm[6];
-    _edgePerm[6] = tempEdgePerm10;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::BD];
+    _edgePerm[Edge::BD] = _edgePerm[Edge::BL];
+    _edgePerm[Edge::BL] = _edgePerm[Edge::UB];
+    _edgePerm[Edge::UB] = _edgePerm[Edge::BR];
+    _edgePerm[Edge::BR] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri10 = _edgeOrient[10];
-    _edgeOrient[10] = _edgeOrient[7] ^ 1;
-    _edgeOrient[7] = _edgeOrient[2] ^ 1;
-    _edgeOrient[2] = _edgeOrient[6] ^ 1;
-    _edgeOrient[6] = tempEdgeOri10 ^ 1;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::BD];
+    _edgeOrient[Edge::BD] = _edgeOrient[Edge::BL] ^ 1;
+    _edgeOrient[Edge::BL] = _edgeOrient[Edge::UB] ^ 1;
+    _edgeOrient[Edge::UB] = _edgeOrient[Edge::BR] ^ 1;
+    _edgeOrient[Edge::BR] = tempEdgeOri ^ 1;
 }
 
 void Cube::moveBPrime()
 {
-    const uint8_t tempCornPerm6 = _cornerPerm[6];
-    _cornerPerm[6] = _cornerPerm[2];
-    _cornerPerm[2] = _cornerPerm[3];
-    _cornerPerm[3] = _cornerPerm[7];
-    _cornerPerm[7] = tempCornPerm6;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::DBR];
+    _cornerPerm[Corner::DBR] = _cornerPerm[Corner::UBR];
+    _cornerPerm[Corner::UBR] = _cornerPerm[Corner::UBL];
+    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::DRL];
+    _cornerPerm[Corner::DRL] = tempCornPerm;
 
-    const uint8_t tempCornOri6 = _cornerOrient[6];
-    _cornerOrient[6] = static_cast<uint8_t>((_cornerOrient[2] + 1) % 3);
-    _cornerOrient[2] = static_cast<uint8_t>((_cornerOrient[3] + 2) % 3);
-    _cornerOrient[3] = static_cast<uint8_t>((_cornerOrient[7] + 1) % 3);
-    _cornerOrient[7] = static_cast<uint8_t>((tempCornOri6 + 2) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::DBR];
+    _cornerOrient[Corner::DBR] = static_cast<uint8_t>((_cornerOrient[Corner::UBR] + 1) % 3);
+    _cornerOrient[Corner::UBR] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 2) % 3);
+    _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::DRL] + 1) % 3);
+    _cornerOrient[Corner::DRL] = static_cast<uint8_t>((tempCornOri + 2) % 3);
 
-    const uint8_t tempEdgePerm6 = _edgePerm[6];
-    _edgePerm[6] = _edgePerm[2];
-    _edgePerm[2] = _edgePerm[7];
-    _edgePerm[7] = _edgePerm[10];
-    _edgePerm[10] = tempEdgePerm6;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::BR];
+    _edgePerm[Edge::BR] = _edgePerm[Edge::UB];
+    _edgePerm[Edge::UB] = _edgePerm[Edge::BL];
+    _edgePerm[Edge::BL] = _edgePerm[Edge::BD];
+    _edgePerm[Edge::BD] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri6 = _edgeOrient[6];
-    _edgeOrient[6] = _edgeOrient[2] ^ 1;
-    _edgeOrient[2] = _edgeOrient[7] ^ 1;
-    _edgeOrient[7] = _edgeOrient[10] ^ 1;
-    _edgeOrient[10] = tempEdgeOri6 ^ 1;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::BR];
+    _edgeOrient[Edge::BR] = _edgeOrient[Edge::UB] ^ 1;
+    _edgeOrient[Edge::UB] = _edgeOrient[Edge::BL] ^ 1;
+    _edgeOrient[Edge::BL] = _edgeOrient[Edge::BD] ^ 1;
+    _edgeOrient[Edge::BD] = tempEdgeOri ^ 1;
 }
 
 void Cube::move2B()
@@ -308,56 +308,56 @@ void Cube::move2B()
 
 void Cube::moveR()
 {
-    const uint8_t tempCornPerm1 = _cornerPerm[1];
-    _cornerPerm[1] = _cornerPerm[5];
-    _cornerPerm[5] = _cornerPerm[6];
-    _cornerPerm[6] = _cornerPerm[2];
-    _cornerPerm[2] = tempCornPerm1;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::UFR];
+    _cornerPerm[Corner::UFR] = _cornerPerm[Corner::DFR];
+    _cornerPerm[Corner::DFR] = _cornerPerm[Corner::DBR];
+    _cornerPerm[Corner::DBR] = _cornerPerm[Corner::UBR];
+    _cornerPerm[Corner::UBR] = tempCornPerm;
 
-    const uint8_t tempCornOri1 = _cornerOrient[1];
-    _cornerOrient[1] = static_cast<uint8_t>((_cornerOrient[5] + 2) % 3);
-    _cornerOrient[5] = static_cast<uint8_t>((_cornerOrient[6] + 1) % 3);
-    _cornerOrient[6] = static_cast<uint8_t>((_cornerOrient[2] + 2) % 3);
-    _cornerOrient[2] = static_cast<uint8_t>((tempCornOri1 + 1) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::UFR];
+    _cornerOrient[Corner::UFR] = static_cast<uint8_t>((_cornerOrient[Corner::DFR] + 2) % 3);
+    _cornerOrient[Corner::DFR] = static_cast<uint8_t>((_cornerOrient[Corner::DBR] + 1) % 3);
+    _cornerOrient[Corner::DBR] = static_cast<uint8_t>((_cornerOrient[Corner::UBR] + 2) % 3);
+    _cornerOrient[Corner::UBR] = static_cast<uint8_t>((tempCornOri + 1) % 3);
 
-    const uint8_t tempEdgePerm1 = _edgePerm[1];
-    _edgePerm[1] = _edgePerm[5];
-    _edgePerm[5] = _edgePerm[9];
-    _edgePerm[9] = _edgePerm[6];
-    _edgePerm[6] = tempEdgePerm1;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::UR];
+    _edgePerm[Edge::UR] = _edgePerm[Edge::FR];
+    _edgePerm[Edge::FR] = _edgePerm[Edge::RD];
+    _edgePerm[Edge::RD] = _edgePerm[Edge::BR];
+    _edgePerm[Edge::BR] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri1 = _edgeOrient[1];
-    _edgeOrient[1] = _edgeOrient[5];
-    _edgeOrient[5] = _edgeOrient[9];
-    _edgeOrient[9] = _edgeOrient[6];
-    _edgeOrient[6] = tempEdgeOri1;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::UR];
+    _edgeOrient[Edge::UR] = _edgeOrient[Edge::FR];
+    _edgeOrient[Edge::FR] = _edgeOrient[Edge::RD];
+    _edgeOrient[Edge::RD] = _edgeOrient[Edge::BR];
+    _edgeOrient[Edge::BR] = tempEdgeOri;
 }
 
 void Cube::moveRPrime()
 {
-    const uint8_t tempCornPerm2 = _cornerPerm[2];
-    _cornerPerm[2] = _cornerPerm[6];
-    _cornerPerm[6] = _cornerPerm[5];
-    _cornerPerm[5] = _cornerPerm[1];
-    _cornerPerm[1] = tempCornPerm2;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::UBR];
+    _cornerPerm[Corner::UBR] = _cornerPerm[Corner::DBR];
+    _cornerPerm[Corner::DBR] = _cornerPerm[Corner::DFR];
+    _cornerPerm[Corner::DFR] = _cornerPerm[Corner::UFR];
+    _cornerPerm[Corner::UFR] = tempCornPerm;
 
-    const uint8_t tempCornOri2 = _cornerOrient[2];
-    _cornerOrient[2] = static_cast<uint8_t>((_cornerOrient[6] + 1) % 3);
-    _cornerOrient[6] = static_cast<uint8_t>((_cornerOrient[5] + 2) % 3);
-    _cornerOrient[5] = static_cast<uint8_t>((_cornerOrient[1] + 1) % 3);
-    _cornerOrient[1] = static_cast<uint8_t>((tempCornOri2 + 2) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::UBR];
+    _cornerOrient[Corner::UBR] = static_cast<uint8_t>((_cornerOrient[Corner::DBR] + 1) % 3);
+    _cornerOrient[Corner::DBR] = static_cast<uint8_t>((_cornerOrient[Corner::DFR] + 2) % 3);
+    _cornerOrient[Corner::DFR] = static_cast<uint8_t>((_cornerOrient[Corner::UFR] + 1) % 3);
+    _cornerOrient[Corner::UFR] = static_cast<uint8_t>((tempCornOri + 2) % 3);
 
-    const uint8_t tempEdgePerm6 = _edgePerm[6];
-    _edgePerm[6] = _edgePerm[9];
-    _edgePerm[9] = _edgePerm[5];
-    _edgePerm[5] = _edgePerm[1];
-    _edgePerm[1] = tempEdgePerm6;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::BR];
+    _edgePerm[Edge::BR] = _edgePerm[Edge::RD];
+    _edgePerm[Edge::RD] = _edgePerm[Edge::FR];
+    _edgePerm[Edge::FR] = _edgePerm[Edge::UR];
+    _edgePerm[Edge::UR] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri6 = _edgeOrient[6];
-    _edgeOrient[6] = _edgeOrient[9];
-    _edgeOrient[9] = _edgeOrient[5];
-    _edgeOrient[5] = _edgeOrient[1];
-    _edgeOrient[1] = tempEdgeOri6;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::BR];
+    _edgeOrient[Edge::BR] = _edgeOrient[Edge::RD];
+    _edgeOrient[Edge::RD] = _edgeOrient[Edge::FR];
+    _edgeOrient[Edge::FR] = _edgeOrient[Edge::UR];
+    _edgeOrient[Edge::UR] = tempEdgeOri;
 }
 
 void Cube::move2R()
@@ -368,56 +368,56 @@ void Cube::move2R()
 
 void Cube::moveL()
 {
-    const uint8_t tempCornPerm0 = _cornerPerm[0];
-    _cornerPerm[0] = _cornerPerm[3];
-    _cornerPerm[3] = _cornerPerm[7];
-    _cornerPerm[7] = _cornerPerm[4];
-    _cornerPerm[4] = tempCornPerm0;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::UFL];
+    _cornerPerm[Corner::UFL] = _cornerPerm[Corner::UBL];
+    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::DRL];
+    _cornerPerm[Corner::DRL] = _cornerPerm[Corner::DFL];
+    _cornerPerm[Corner::DFL] = tempCornPerm;
 
-    const uint8_t tempCornOri0 = _cornerOrient[0];
-    _cornerOrient[0] = static_cast<uint8_t>((_cornerOrient[3] + 1) % 3);
-    _cornerOrient[3] = static_cast<uint8_t>((_cornerOrient[7] + 2) % 3);
-    _cornerOrient[7] = static_cast<uint8_t>((_cornerOrient[4] + 1) % 3);
-    _cornerOrient[4] = static_cast<uint8_t>((tempCornOri0 + 2) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::UFL];
+    _cornerOrient[Corner::UFL] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 1) % 3);
+    _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::DRL] + 2) % 3);
+    _cornerOrient[Corner::DRL] = static_cast<uint8_t>((_cornerOrient[Corner::DFL] + 1) % 3);
+    _cornerOrient[Corner::DFL] = static_cast<uint8_t>((tempCornOri + 2) % 3);
 
-    const uint8_t tempEdgePerm3 = _edgePerm[3];
-    _edgePerm[3] = _edgePerm[7];
-    _edgePerm[7] = _edgePerm[11];
-    _edgePerm[11] = _edgePerm[4];
-    _edgePerm[4] = tempEdgePerm3;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::UL];
+    _edgePerm[Edge::UL] = _edgePerm[Edge::BL];
+    _edgePerm[Edge::BL] = _edgePerm[Edge::LD];
+    _edgePerm[Edge::LD] = _edgePerm[Edge::FL];
+    _edgePerm[Edge::FL] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri3 = _edgeOrient[3];
-    _edgeOrient[3] = _edgeOrient[7];
-    _edgeOrient[7] = _edgeOrient[11];
-    _edgeOrient[11] = _edgeOrient[4];
-    _edgeOrient[4] = tempEdgeOri3;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::UL];
+    _edgeOrient[Edge::UL] = _edgeOrient[Edge::BL];
+    _edgeOrient[Edge::BL] = _edgeOrient[Edge::LD];
+    _edgeOrient[Edge::LD] = _edgeOrient[Edge::FL];
+    _edgeOrient[Edge::FL] = tempEdgeOri;
 }
 
 void Cube::moveLPrime()
 {
-    const uint8_t tempCornPerm4 = _cornerPerm[4];
-    _cornerPerm[4] = _cornerPerm[7];
-    _cornerPerm[7] = _cornerPerm[3];
-    _cornerPerm[3] = _cornerPerm[0];
-    _cornerPerm[0] = tempCornPerm4;
+    const uint8_t tempCornPerm = _cornerPerm[Corner::DFL];
+    _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DRL];
+    _cornerPerm[Corner::DRL] = _cornerPerm[Corner::UBL];
+    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::UFL];
+    _cornerPerm[Corner::UFL] = tempCornPerm;
 
-    const uint8_t tempCornOri4 = _cornerOrient[4];
-    _cornerOrient[4] = static_cast<uint8_t>((_cornerOrient[7] + 2) % 3);
-    _cornerOrient[7] = static_cast<uint8_t>((_cornerOrient[3] + 1) % 3);
-    _cornerOrient[3] = static_cast<uint8_t>((_cornerOrient[0] + 2) % 3);
-    _cornerOrient[0] = static_cast<uint8_t>((tempCornOri4 + 1) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::DFL];
+    _cornerOrient[Corner::DFL] = static_cast<uint8_t>((_cornerOrient[Corner::DRL] + 2) % 3);
+    _cornerOrient[Corner::DRL] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 1) % 3);
+    _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::UFL] + 2) % 3);
+    _cornerOrient[Corner::UFL] = static_cast<uint8_t>((tempCornOri + 1) % 3);
 
-    const uint8_t tempEdgePerm4 = _edgePerm[4];
-    _edgePerm[4] = _edgePerm[11];
-    _edgePerm[11] = _edgePerm[7];
-    _edgePerm[7] = _edgePerm[3];
-    _edgePerm[3] = tempEdgePerm4;
+    const uint8_t tempEdgePerm = _edgePerm[Edge::FL];
+    _edgePerm[Edge::FL] = _edgePerm[Edge::LD];
+    _edgePerm[Edge::LD] = _edgePerm[Edge::BL];
+    _edgePerm[Edge::BL] = _edgePerm[Edge::UL];
+    _edgePerm[Edge::UL] = tempEdgePerm;
 
-    const uint8_t tempEdgeOri4 = _edgeOrient[4];
-    _edgeOrient[4] = _edgeOrient[11];
-    _edgeOrient[11] = _edgeOrient[7];
-    _edgeOrient[7] = _edgeOrient[3];
-    _edgeOrient[3] = tempEdgeOri4;
+    const uint8_t tempEdgeOri = _edgeOrient[Edge::FL];
+    _edgeOrient[Edge::FL] = _edgeOrient[Edge::LD];
+    _edgeOrient[Edge::LD] = _edgeOrient[Edge::BL];
+    _edgeOrient[Edge::BL] = _edgeOrient[Edge::UL];
+    _edgeOrient[Edge::UL] = tempEdgeOri;
 }
 
 void Cube::move2L()
@@ -430,7 +430,7 @@ uint32_t Cube::getTwist() const
 {
     uint32_t twist = 0;
     uint32_t factor = 1;
-    for (uint8_t i = 0; i < (CORNER_COUNT - 1); ++i)
+    for (uint8_t i = 0; i < (Corner::CornersCount - 1); ++i)
     {
         twist += _cornerOrient[i] * factor;
         factor *= 3;
@@ -440,13 +440,13 @@ uint32_t Cube::getTwist() const
 
 void Cube::setCornerOrientFromTwist(uint32_t twist)
 {
-    for (uint8_t i = 0; i < (CORNER_COUNT - 1); ++i)
+    for (uint8_t i = 0; i < (Corner::CornersCount - 1); ++i)
     {
         _cornerOrient[i] = static_cast<uint8_t>(twist % 3);
         twist /= 3;
     }
     // The orientation of the last corner is determined by the first seven corners
-    _cornerOrient[CORNER_COUNT - 1] =
+    _cornerOrient[Corner::CornersCount - 1] =
         static_cast<uint8_t>((3 - (_cornerOrient[0] + _cornerOrient[1] + _cornerOrient[2] + _cornerOrient[3] +
                                    _cornerOrient[4] + _cornerOrient[5] + _cornerOrient[6]) %
                                       3) %
@@ -457,7 +457,7 @@ uint32_t Cube::getFlip() const
 {
     uint32_t flip = 0;
     uint32_t factor = 1;
-    for (uint8_t i = 0; i < (EDGE_COUNT - 1); ++i)
+    for (uint8_t i = 0; i < (Edge::EdgesCount - 1); ++i)
     {
         flip += _edgeOrient[i] * factor;
         factor *= 2;
@@ -467,31 +467,26 @@ uint32_t Cube::getFlip() const
 
 void Cube::setEdgeOrientFromFlip(uint32_t flip)
 {
-    for (uint8_t i = 0; i < (EDGE_COUNT - 1); ++i)
+    for (uint8_t i = 0; i < (Edge::EdgesCount - 1); ++i)
     {
         _edgeOrient[i] = flip % 2;
         flip /= 2;
     }
     // The orientation of the last edge is determined by the first eleven edges
-    _edgeOrient[EDGE_COUNT - 1] = 0;
-    for (uint8_t i = 0; i < (EDGE_COUNT - 1); ++i)
+    _edgeOrient[Edge::EdgesCount - 1] = 0;
+    for (uint8_t i = 0; i < (Edge::EdgesCount - 1); ++i)
     {
-        _edgeOrient[EDGE_COUNT - 1] ^= _edgeOrient[i];
+        _edgeOrient[Edge::EdgesCount - 1] ^= _edgeOrient[i];
     }
 }
 
 uint32_t Cube::getUDSlice() const
 {
-    constexpr uint8_t FL = 4;
-    constexpr uint8_t FR = 5;
-    constexpr uint8_t BR = 6;
-    constexpr uint8_t BL = 7;
-
     uint32_t udSlice = 0;
     size_t remainingSliceEdges = SLICE_EDGE_COUNT;
-    for (int i = EDGE_COUNT - 1; i >= 0; --i)
+    for (int i = Edge::EdgesCount - 1; i >= 0; --i)
     {
-        if (_edgePerm[i] == FL || _edgePerm[i] == FR || _edgePerm[i] == BR || _edgePerm[i] == BL)
+        if (_edgePerm[i] == Edge::FL || _edgePerm[i] == Edge::FR || _edgePerm[i] == Edge::BR || _edgePerm[i] == Edge::BL)
         {
             udSlice += _CValues[i][remainingSliceEdges];
             --remainingSliceEdges;
@@ -503,14 +498,12 @@ uint32_t Cube::getUDSlice() const
 
 void Cube::setEdgePosFromUDSlice(uint32_t udSlice)
 {
-    constexpr uint8_t BL = 7;
-
-    std::array<uint8_t, EDGE_COUNT> newEdgePerm;
+    std::array<uint8_t, Edge::EdgesCount> newEdgePerm;
     newEdgePerm.fill(0); // Initialize all edges to 0 (not in UD slice)
     int remainingSliceEdges = SLICE_EDGE_COUNT;
-    uint8_t nextSliceEdge = BL;
+    uint8_t nextSliceEdge = Edge::BL;
 
-    for (int i = EDGE_COUNT - 1; i >= 0 && remainingSliceEdges > 0; --i)
+    for (int i = Edge::EdgesCount - 1; i >= 0 && remainingSliceEdges > 0; --i)
     {
         if (_CValues[i][remainingSliceEdges] <= udSlice)
         {

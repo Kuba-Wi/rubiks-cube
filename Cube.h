@@ -7,24 +7,38 @@
 #include <map>
 #include <string>
 
-/*!
- * @brief Class representing a Rubik's Cube.
- *
- * Indexes of corners are as follows:
- * 0: UFL,      4: DFL,
- * 1: UFR,      5: DFR,
- * 2: UBR,      6: DBR,
- * 3: UBL,      7: DRL
- * Indexes of edges are as follows:
- * 0: UF,       6: BR,
- * 1: UR,       7: BL,
- * 2: UB,       8: FD,
- * 3: UL,       9: RD,
- * 4: FL,       10: BD,
- * 5: FR,       11: LD,
- */
 class Cube
 {
+    enum Corner : uint8_t
+    {
+        UFL = 0,
+        UFR,
+        UBR,
+        UBL,
+        DFL,
+        DFR,
+        DBR,
+        DRL,
+        CornersCount
+    };
+
+    enum Edge : uint8_t
+    {
+        UF = 0,
+        UR,
+        UB,
+        UL,
+        FL, // member of the UD slice
+        FR, // member of the UD slice
+        BR, // member of the UD slice
+        BL, // member of the UD slice
+        FD,
+        RD,
+        BD,
+        LD,
+        EdgesCount
+    };
+
     enum Move : size_t
     {
         U = 0,
@@ -137,8 +151,6 @@ public:
 
     void printCube() const;
 
-    static constexpr size_t CORNER_COUNT = 8;
-    static constexpr size_t EDGE_COUNT = 12;
     static constexpr size_t SLICE_EDGE_COUNT = 4; // FL, FR, BL, BR
     static constexpr size_t TWIST_COUNT = 2187;   // 3^7
     static constexpr size_t FLIP_COUNT = 2048;    // 2^11
@@ -164,7 +176,7 @@ private:
     // Move functions mapped by their corresponding move index
     std::map<size_t, std::function<void()>> _moveFunctions;
 
-    std::array<uint8_t, CORNER_COUNT> _cornerPerm;
+    std::array<uint8_t, Corner::CornersCount> _cornerPerm;
 
     /*!
      * Corner orientation: 0 = correct, 1 = clockwise, 2 = counterclockwise
@@ -172,22 +184,22 @@ private:
      * _cornerOrient[0] tells orientation of a corner that is currently in position 0 (UFL), etc.
      * Corner is in correct orientation if the U or D color is on the U or D face (U color on D face is correct).
      */
-    std::array<uint8_t, CORNER_COUNT> _cornerOrient;
+    std::array<uint8_t, Corner::CornersCount> _cornerOrient;
 
-    std::array<uint8_t, EDGE_COUNT> _edgePerm;
+    std::array<uint8_t, Edge::EdgesCount> _edgePerm;
 
     /*!
      * Edge orientation: 0 = correct, 1 = flipped
      * Only moves F, B, F', B' flip edge orientation.
      * _edgeOrient[0] tells orientation of an edge that is currently in position 0 (UF), etc.
      */
-    std::array<uint8_t, EDGE_COUNT> _edgeOrient;
+    std::array<uint8_t, Edge::EdgesCount> _edgeOrient;
 
     /*!
      * Precomputed values for C(n, k) = n! / (k! * (n - k)!)
      * It is needed for calculating the UD slice permutation.
      */
-    std::array<std::array<uint32_t, SLICE_EDGE_COUNT + 1>, EDGE_COUNT> _CValues;
+    std::array<std::array<uint32_t, SLICE_EDGE_COUNT + 1>, Edge::EdgesCount> _CValues;
 
     /*!
      * Precomputed moves for each twist of the cube.
