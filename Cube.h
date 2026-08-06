@@ -36,7 +36,9 @@ class Cube
         RD,
         BD,
         LD,
-        EdgesCount
+        EdgesCount,
+        EdgesCountPhase2 = 8, // edges considered in phase 2 of the solving algorithm (UF, UR, UB, UL, FD, RD, BD, LD)
+        EdgesCountUDSlice = 4 // edges considered in the UD slice (FL, FR, BR, BL)
     };
 
     enum Move : size_t
@@ -59,7 +61,9 @@ class Cube
         L,
         LPrime,
         DoubleL,
-        MovesCount
+        MovesCount,
+        MovesCountPhase2 = 10 // moves that are allowed in phase 2 of the solving algorithm (U, U', U2, D, D', D2, F2, B2,
+                              // R2, L2)
     };
 
 public:
@@ -134,12 +138,27 @@ public:
      */
     void setEdgePosFromUDSlice(uint32_t udSlice);
 
+    uint32_t getCornerPerm() const;
+    void setCornerPermFromIndex(uint32_t index);
+
+    uint32_t getTopBottomEdgePerm() const;
+    void setTopBottomEdgePermFromIndex(uint32_t index);
+
+    uint32_t getUDSlicePerm() const;
+    void setUDSlicePermFromIndex(uint32_t index);
+
     void buildTwistMovesTable();
     void buildFlipMovesTable();
     void buildUDSliceMovesTable();
+    void buildCornerPermMovesTable();
+    void buildTopBottomEdgePermMovesTable();
+    void buildUDSlicePermMovesTable();
 
     void buildTwistSlicePtb();
     void buildFlipSlicePtb();
+    void buildCornerPermPtb();
+    void buildEdgeTopBottomPermPtb();
+    void buildUDSlicePermPtb();
 
     /*!
      * Finds a sequence of moves that brings the cube to a G1 state.
@@ -151,10 +170,13 @@ public:
 
     void printCube() const;
 
-    static constexpr size_t SLICE_EDGE_COUNT = 4; // FL, FR, BL, BR
-    static constexpr size_t TWIST_COUNT = 2187;   // 3^7
-    static constexpr size_t FLIP_COUNT = 2048;    // 2^11
-    static constexpr size_t UDSLICE_COUNT = 495;  // C(12, 4)
+    static constexpr size_t SLICE_EDGE_COUNT = 4;      // FL, FR, BL, BR
+    static constexpr size_t TWIST_COUNT = 2187;        // 3^7
+    static constexpr size_t FLIP_COUNT = 2048;         // 2^11
+    static constexpr size_t UDSLICE_COUNT = 495;       // C(12, 4)
+    static constexpr size_t CORNER_PERM_COUNT = 40320; // 8!
+    static constexpr size_t EDGE_PERM_COUNT = 40320;   // 8! - it only concerns the edges from top and bottom layers
+    static constexpr size_t UDSLICE_PERM_COUNT = 24;   // 4!
 
 private:
     /*!
@@ -174,7 +196,9 @@ private:
     std::string moveToString(Move move) const;
 
     // Move functions mapped by their corresponding move index
-    std::map<size_t, std::function<void()>> _moveFunctions;
+    std::map<Move, std::function<void()>> _moveFunctions;
+    // Move functions mapped by their corresponding move index for phase 2 of the solving algorithm
+    std::map<Move, std::function<void()>> _moveFunctionsPhase2;
 
     std::array<uint8_t, Corner::CornersCount> _cornerPerm;
 
@@ -208,6 +232,9 @@ private:
     std::array<std::array<uint32_t, Move::MovesCount>, TWIST_COUNT> _twistMovesTable;
     std::array<std::array<uint32_t, Move::MovesCount>, FLIP_COUNT> _flipMovesTable;
     std::array<std::array<uint32_t, Move::MovesCount>, UDSLICE_COUNT> _udSliceMovesTable;
+    std::array<std::map<Move, uint32_t>, CORNER_PERM_COUNT> _cornerPermMovesTable;
+    std::array<std::map<Move, uint32_t>, EDGE_PERM_COUNT> _edgeTopBottomPermMovesTable;
+    std::array<std::map<Move, uint32_t>, UDSLICE_PERM_COUNT> _udSlicePermMovesTable;
 
     /*!
      * Precomputed table for pruning the twist of the cube
@@ -215,4 +242,7 @@ private:
      */
     std::vector<std::vector<uint8_t>> _twistSlicePtb;
     std::vector<std::vector<uint8_t>> _flipSlicePtb;
+    std::vector<uint8_t> _cornerPermPtb;
+    std::vector<uint8_t> _edgeTopBottomPermPtb;
+    std::vector<uint8_t> _udSlicePermPtb;
 };

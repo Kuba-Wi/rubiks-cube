@@ -7,8 +7,6 @@
 
 Cube::Cube()
 {
-    resetCubeToSolved();
-
     for (size_t n = 0; n < Edge::EdgesCount; ++n)
     {
         _CValues[n][0] = 1;
@@ -48,6 +46,20 @@ Cube::Cube()
         {Move::LPrime, [this]() { moveLPrime(); }},
         {Move::DoubleL, [this]() { move2L(); }}
     };
+
+    _moveFunctionsPhase2 =
+    {
+        {Move::U, [this]() { moveU(); }},
+        {Move::UPrime, [this]() { moveUPrime(); }},
+        {Move::DoubleU, [this]() { move2U(); }},
+        {Move::D, [this]() { moveD(); }},
+        {Move::DPrime, [this]() { moveDPrime(); }},
+        {Move::DoubleD, [this]() { move2D(); }},
+        {Move::DoubleF, [this]() { move2F(); }},
+        {Move::DoubleB, [this]() { move2B(); }},
+        {Move::DoubleR, [this]() { move2R(); }},
+        {Move::DoubleL, [this]() { move2L(); }}
+    };
     // clang-format on
 
     buildFlipMovesTable();
@@ -55,6 +67,15 @@ Cube::Cube()
     buildUDSliceMovesTable();
     buildTwistSlicePtb();
     buildFlipSlicePtb();
+
+    buildCornerPermMovesTable();
+    buildTopBottomEdgePermMovesTable();
+    buildUDSlicePermMovesTable();
+    buildCornerPermPtb();
+    buildEdgeTopBottomPermPtb();
+    buildUDSlicePermPtb();
+
+    resetCubeToSolved();
 }
 
 void Cube::resetCubeToSolved()
@@ -517,14 +538,195 @@ void Cube::setEdgePosFromUDSlice(uint32_t udSlice)
     _edgePerm = newEdgePerm;
 }
 
+uint32_t Cube::getCornerPerm() const
+{
+    auto lehmerCode = _cornerPerm;
+    uint8_t smallerCount = 0;
+    for (size_t i = 0; i < Corner::CornersCount; ++i)
+    {
+        smallerCount = 0;
+        for (size_t j = i + 1; j < Corner::CornersCount; ++j)
+        {
+            if (lehmerCode[j] < lehmerCode[i])
+            {
+                ++smallerCount;
+            }
+        }
+        lehmerCode[i] = smallerCount;
+    }
+    uint32_t factorial = 1;
+    uint32_t result = 0;
+    for (int i = Corner::CornersCount - 2; i >= 0; --i)
+    {
+        factorial *= (Corner::CornersCount - 1 - i);
+        result += lehmerCode[i] * factorial;
+    }
+
+    return result;
+}
+
+void Cube::setCornerPermFromIndex(uint32_t index)
+{
+    std::array<uint32_t, Corner::CornersCount> lehmerCode;
+    lehmerCode.fill(0);
+    uint32_t factorial = 1;
+    for (int i = 1; i < Corner::CornersCount; ++i)
+    {
+        factorial *= i;
+    }
+
+    for (int i = 0; i < Corner::CornersCount - 1; ++i)
+    {
+        lehmerCode[i] = index / factorial;
+        index %= factorial;
+        factorial /= (Corner::CornersCount - 1 - i);
+    }
+
+    std::vector<uint8_t> availableCorners(Corner::CornersCount);
+    std::iota(availableCorners.begin(), availableCorners.end(), 0);
+    for (size_t i = 0; i < Corner::CornersCount; ++i)
+    {
+        _cornerPerm[i] = availableCorners[lehmerCode[i]];
+        availableCorners.erase(availableCorners.begin() + lehmerCode[i]);
+    }
+}
+
+uint32_t Cube::getTopBottomEdgePerm() const
+{
+    const std::array<uint8_t, Edge::EdgesCountPhase2> topBottomEdges = {
+        Edge::UF, Edge::UR, Edge::UB, Edge::UL, Edge::FD, Edge::RD, Edge::BD, Edge::LD};
+
+    std::vector<uint32_t> lehmerCode(Edge::EdgesCountPhase2);
+    for (size_t i = 0; i < Edge::EdgesCountPhase2; ++i)
+    {
+        lehmerCode[i] = _edgePerm[topBottomEdges[i]];
+    }
+
+    uint8_t smallerCount = 0;
+    for (size_t i = 0; i < Edge::EdgesCountPhase2; ++i)
+    {
+        smallerCount = 0;
+        for (size_t j = i + 1; j < Edge::EdgesCountPhase2; ++j)
+        {
+            if (lehmerCode[j] < lehmerCode[i])
+            {
+                ++smallerCount;
+            }
+        }
+        lehmerCode[i] = smallerCount;
+    }
+    uint32_t factorial = 1;
+    uint32_t result = 0;
+    for (int i = Edge::EdgesCountPhase2 - 2; i >= 0; --i)
+    {
+        factorial *= (Edge::EdgesCountPhase2 - 1 - i);
+        result += lehmerCode[i] * factorial;
+    }
+
+    return result;
+}
+
+void Cube::setTopBottomEdgePermFromIndex(uint32_t index)
+{
+    const std::array<uint8_t, Edge::EdgesCountPhase2> topBottomEdges = {
+        Edge::UF, Edge::UR, Edge::UB, Edge::UL, Edge::FD, Edge::RD, Edge::BD, Edge::LD};
+
+    std::array<uint32_t, Edge::EdgesCountPhase2> lehmerCode;
+    lehmerCode.fill(0);
+    uint32_t factorial = 1;
+    for (int i = 1; i < Edge::EdgesCountPhase2; ++i)
+    {
+        factorial *= i;
+    }
+
+    for (int i = 0; i < Edge::EdgesCountPhase2 - 1; ++i)
+    {
+        lehmerCode[i] = index / factorial;
+        index %= factorial;
+        factorial /= (Edge::EdgesCountPhase2 - 1 - i);
+    }
+
+    std::vector<uint8_t> availableEdges(Edge::EdgesCountPhase2);
+    std::iota(availableEdges.begin(), availableEdges.end(), 0);
+    _edgePerm.fill(0);
+    for (size_t i = 0; i < Edge::EdgesCountPhase2; ++i)
+    {
+        _edgePerm[topBottomEdges[i]] = availableEdges[lehmerCode[i]];
+        availableEdges.erase(availableEdges.begin() + lehmerCode[i]);
+    }
+}
+
+uint32_t Cube::getUDSlicePerm() const
+{
+    const std::array<uint8_t, Edge::EdgesCountUDSlice> udSliceEdges = {Edge::FL, Edge::FR, Edge::BR, Edge::BL};
+
+    std::vector<uint32_t> lehmerCode(Edge::EdgesCountUDSlice);
+    for (size_t i = 0; i < Edge::EdgesCountUDSlice; ++i)
+    {
+        lehmerCode[i] = _edgePerm[udSliceEdges[i]];
+    }
+
+    uint8_t smallerCount = 0;
+    for (size_t i = 0; i < Edge::EdgesCountUDSlice; ++i)
+    {
+        smallerCount = 0;
+        for (size_t j = i + 1; j < Edge::EdgesCountUDSlice; ++j)
+        {
+            if (lehmerCode[j] < lehmerCode[i])
+            {
+                ++smallerCount;
+            }
+        }
+        lehmerCode[i] = smallerCount;
+    }
+    uint32_t factorial = 1;
+    uint32_t result = 0;
+    for (int i = Edge::EdgesCountUDSlice - 2; i >= 0; --i)
+    {
+        factorial *= (Edge::EdgesCountUDSlice - 1 - i);
+        result += lehmerCode[i] * factorial;
+    }
+
+    return result;
+}
+
+void Cube::setUDSlicePermFromIndex(uint32_t index)
+{
+    const std::array<uint8_t, Edge::EdgesCountUDSlice> udSliceEdges = {Edge::FL, Edge::FR, Edge::BR, Edge::BL};
+
+    std::array<uint32_t, Edge::EdgesCountUDSlice> lehmerCode;
+    lehmerCode.fill(0);
+    uint32_t factorial = 1;
+    for (int i = 1; i < Edge::EdgesCountUDSlice; ++i)
+    {
+        factorial *= i;
+    }
+
+    for (int i = 0; i < Edge::EdgesCountUDSlice - 1; ++i)
+    {
+        lehmerCode[i] = index / factorial;
+        index %= factorial;
+        factorial /= (Edge::EdgesCountUDSlice - 1 - i);
+    }
+
+    std::vector<uint8_t> availableEdges(Edge::EdgesCountUDSlice);
+    std::iota(availableEdges.begin(), availableEdges.end(), 0);
+    _edgePerm.fill(0);
+    for (size_t i = 0; i < Edge::EdgesCountUDSlice; ++i)
+    {
+        _edgePerm[udSliceEdges[i]] = availableEdges[lehmerCode[i]];
+        availableEdges.erase(availableEdges.begin() + lehmerCode[i]);
+    }
+}
+
 void Cube::buildTwistMovesTable()
 {
     for (uint32_t twist = 0; twist < TWIST_COUNT; ++twist)
     {
-        for (size_t move = 0; move < Move::MovesCount; ++move)
+        for (const auto& [move, moveFunction] : _moveFunctions)
         {
             setCornerOrientFromTwist(twist);
-            _moveFunctions[move]();
+            moveFunction();
             _twistMovesTable[twist][move] = getTwist();
         }
     }
@@ -534,10 +736,10 @@ void Cube::buildFlipMovesTable()
 {
     for (uint32_t flip = 0; flip < FLIP_COUNT; ++flip)
     {
-        for (size_t move = 0; move < Move::MovesCount; ++move)
+        for (const auto& [move, moveFunction] : _moveFunctions)
         {
             setEdgeOrientFromFlip(flip);
-            _moveFunctions[move]();
+            moveFunction();
             _flipMovesTable[flip][move] = getFlip();
         }
     }
@@ -547,11 +749,50 @@ void Cube::buildUDSliceMovesTable()
 {
     for (uint32_t udSlice = 0; udSlice < UDSLICE_COUNT; ++udSlice)
     {
-        for (size_t move = 0; move < Move::MovesCount; ++move)
+        for (const auto& [move, moveFunction] : _moveFunctions)
         {
             setEdgePosFromUDSlice(udSlice);
-            _moveFunctions[move]();
+            moveFunction();
             _udSliceMovesTable[udSlice][move] = getUDSlice();
+        }
+    }
+}
+
+void Cube::buildCornerPermMovesTable()
+{
+    for (uint32_t cornerPerm = 0; cornerPerm < CORNER_PERM_COUNT; ++cornerPerm)
+    {
+        for (const auto& [moveIndex, moveFunction] : _moveFunctionsPhase2)
+        {
+            setCornerPermFromIndex(cornerPerm);
+            moveFunction();
+            _cornerPermMovesTable[cornerPerm][moveIndex] = getCornerPerm();
+        }
+    }
+}
+
+void Cube::buildTopBottomEdgePermMovesTable()
+{
+    for (uint32_t edgePerm = 0; edgePerm < EDGE_PERM_COUNT; ++edgePerm)
+    {
+        for (const auto& [moveIndex, moveFunction] : _moveFunctionsPhase2)
+        {
+            setTopBottomEdgePermFromIndex(edgePerm);
+            moveFunction();
+            _edgeTopBottomPermMovesTable[edgePerm][moveIndex] = getTopBottomEdgePerm();
+        }
+    }
+}
+
+void Cube::buildUDSlicePermMovesTable()
+{
+    for (uint32_t edgePerm = 0; edgePerm < UDSLICE_PERM_COUNT; ++edgePerm)
+    {
+        for (const auto& [moveIndex, moveFunction] : _moveFunctionsPhase2)
+        {
+            setUDSlicePermFromIndex(edgePerm);
+            moveFunction();
+            _udSlicePermMovesTable[edgePerm][moveIndex] = getUDSlicePerm();
         }
     }
 }
@@ -619,6 +860,84 @@ void Cube::buildFlipSlicePtb()
             {
                 _flipSlicePtb[nextFlip][nextUDSlice] = _flipSlicePtb[currentFlip][currentUDSlice] + 1;
                 nextStates.push({nextFlip, nextUDSlice});
+            }
+        }
+    }
+}
+
+void Cube::buildCornerPermPtb()
+{
+    constexpr uint8_t notSetValue = std::numeric_limits<uint8_t>::max();
+    resetCubeToSolved();
+    uint32_t initialPerm = getCornerPerm();
+
+    _cornerPermPtb.resize(CORNER_PERM_COUNT);
+    _cornerPermPtb[initialPerm] = 0; // The solved state has a distance of 0
+    std::queue<uint32_t> nextStates;
+    nextStates.push(initialPerm);
+    while (!nextStates.empty())
+    {
+        uint32_t currentPerm = nextStates.front();
+        nextStates.pop();
+        for (size_t move = 0; move < Move::MovesCount; ++move)
+        {
+            uint32_t nextPerm = _cornerPermMovesTable[currentPerm][static_cast<Move>(move)];
+            if (_cornerPermPtb[nextPerm] == notSetValue)
+            {
+                _cornerPermPtb[nextPerm] = _cornerPermPtb[currentPerm] + 1;
+                nextStates.push(nextPerm);
+            }
+        }
+    }
+}
+
+void Cube::buildEdgeTopBottomPermPtb()
+{
+    constexpr uint8_t notSetValue = std::numeric_limits<uint8_t>::max();
+    resetCubeToSolved();
+    uint32_t initialPerm = getTopBottomEdgePerm();
+
+    _edgeTopBottomPermPtb.resize(EDGE_PERM_COUNT);
+    _edgeTopBottomPermPtb[initialPerm] = 0; // The solved state has a distance of 0
+    std::queue<uint32_t> nextStates;
+    nextStates.push(initialPerm);
+    while (!nextStates.empty())
+    {
+        uint32_t currentPerm = nextStates.front();
+        nextStates.pop();
+        for (const auto& [move, _] : _moveFunctionsPhase2)
+        {
+            uint32_t nextPerm = _edgeTopBottomPermMovesTable[currentPerm][move];
+            if (_edgeTopBottomPermPtb[nextPerm] == notSetValue)
+            {
+                _edgeTopBottomPermPtb[nextPerm] = _edgeTopBottomPermPtb[currentPerm] + 1;
+                nextStates.push(nextPerm);
+            }
+        }
+    }
+}
+
+void Cube::buildUDSlicePermPtb()
+{
+    constexpr uint8_t notSetValue = std::numeric_limits<uint8_t>::max();
+    resetCubeToSolved();
+    uint32_t initialPerm = getUDSlicePerm();
+
+    _udSlicePermPtb.resize(UDSLICE_PERM_COUNT);
+    _udSlicePermPtb[initialPerm] = 0; // The solved state has a distance of 0
+    std::queue<uint32_t> nextStates;
+    nextStates.push(initialPerm);
+    while (!nextStates.empty())
+    {
+        uint32_t currentPerm = nextStates.front();
+        nextStates.pop();
+        for (const auto& [move, _] : _moveFunctionsPhase2)
+        {
+            uint32_t nextPerm = _udSlicePermMovesTable[currentPerm][move];
+            if (_udSlicePermPtb[nextPerm] == notSetValue)
+            {
+                _udSlicePermPtb[nextPerm] = _udSlicePermPtb[currentPerm] + 1;
+                nextStates.push(nextPerm);
             }
         }
     }
