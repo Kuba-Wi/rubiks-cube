@@ -31,8 +31,7 @@ int main()
     cube.move2L();
 
     cube.printCube();
-
-    cube.findMovesToG1State();
+    cube.solveCube();
     cube.printCube();
 
     return 0;

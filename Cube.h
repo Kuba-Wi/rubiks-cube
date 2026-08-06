@@ -73,6 +73,7 @@ public:
     Cube& operator=(const Cube& other) = delete;
 
     void resetCubeToSolved();
+    void solveCube();
 
     void moveU();
     void moveUPrime();
@@ -138,13 +139,30 @@ public:
      */
     void setEdgePosFromUDSlice(uint32_t udSlice);
 
+    /*!
+     * Returns a number representing the permutation of the corners of the cube.
+     * The corner permutation is calculated using Lehmer code. Permutation is represented using Lehmer code and then
+     * converted to an integer using factorial number system. (L0*7! + L1*6! + L2*5! + L3*4! + L4*3! + L5*2! + L6*1!) The
+     * corner permutation is a number between 0 and 40319 (8! - 1), where 0 represents a solved cube and 40319 represents a
+     * cube with all corners permuted in reverse order.
+     */
     uint32_t getCornerPerm() const;
     void setCornerPermFromIndex(uint32_t index);
 
+    /*!
+     * Returns a number representing permutation of the edges on top and bottom layers using Lehmer code.
+     */
     uint32_t getTopBottomEdgePerm() const;
     void setTopBottomEdgePermFromIndex(uint32_t index);
 
+    /*!
+     * Returns a number representing the permutation of the UD slice edges using Lehmer code.
+     */
     uint32_t getUDSlicePerm() const;
+    /*!
+     * Sets the permutation of the UD slice edges based on a given index using Lehmer code.
+     * Note: It sets only the permutation of edges coming from the UD slice and sets other edges permutation to 0.
+     */
     void setUDSlicePermFromIndex(uint32_t index);
 
     void buildTwistMovesTable();
@@ -156,17 +174,8 @@ public:
 
     void buildTwistSlicePtb();
     void buildFlipSlicePtb();
-    void buildCornerPermPtb();
-    void buildEdgeTopBottomPermPtb();
-    void buildUDSlicePermPtb();
-
-    /*!
-     * Finds a sequence of moves that brings the cube to a G1 state.
-     * The G1 state is defined as a state where the cube's corners and edges are correctly oriented and the UD slice edges
-     * are all in the UD slice but in any order.
-     * For now it prints the sequence of moves to the console and performs the moves on the cube.
-     */
-    void findMovesToG1State();
+    void buildCornerSlicePermPtb();
+    void buildEdgeTopBottomSlicePermPtb();
 
     void printCube() const;
 
@@ -180,18 +189,45 @@ public:
 
 private:
     /*!
+     * Finds a sequence of moves that brings the cube to a G1 state.
+     * The G1 state is defined as a state where the cube's corners and edges are correctly oriented and the UD slice edges
+     * are all in the UD slice but in any order.
+     * @return vector of moves that brings the cube to a G1 state.
+     */
+    std::vector<Move> findMovesToG1State();
+    /*!
+     * Returns a vector of moves that brings the cube from a G1 state to the solved state.
+     * @return vector of moves that brings the cube from a G1 state to the solved state.
+     */
+    std::vector<Move> findMovesFromG1ToSolvedState();
+
+    /*!
      * Searches for a sequence of moves that brings the cube to a G1 state.
      * Returns a pair consisting of the distance of state A from the G1 state and the corresponding moves sequence to reach
      * state A. It returns the smallest possible distance and the corresponding moves sequence among all possible moves from
      * the current state with a given search depth limitation and currentLimit (the maximum distance of state A from the G1
      * state).
+     * Note: it is invoked by findMovesToG1State()
      */
     std::pair<uint8_t, std::vector<Move>> searchStatesToGetToG1State(uint32_t currentTwist,
                                                                      uint32_t currentFlip,
                                                                      uint32_t currentUDSlice,
                                                                      uint8_t depth,
                                                                      uint8_t currentLimit,
-                                                                     std::vector<Move> movesSequence);
+                                                                     std::vector<Move> movesSequence) const;
+
+    /*!
+     * Searches for a sequence of moves that brings the cube from a G1 state to the solved state.
+     * @return a pair consisting of the distance of state A from the solved state and the corresponding moves sequence to reach
+     * state A.
+     * Note: it is invoked by findMovesFromG1ToSolvedState()
+     */
+    std::pair<uint8_t, std::vector<Move>> searchStatesToGetToSolvedState(uint32_t currentCornerPerm,
+                                                                         uint32_t currentTopBottomEdgePerm,
+                                                                         uint32_t currentUDSlicePerm,
+                                                                         uint8_t depth,
+                                                                         uint8_t currentLimit,
+                                                                         std::vector<Move> movesSequence);
 
     std::string moveToString(Move move) const;
 
@@ -242,7 +278,6 @@ private:
      */
     std::vector<std::vector<uint8_t>> _twistSlicePtb;
     std::vector<std::vector<uint8_t>> _flipSlicePtb;
-    std::vector<uint8_t> _cornerPermPtb;
-    std::vector<uint8_t> _edgeTopBottomPermPtb;
-    std::vector<uint8_t> _udSlicePermPtb;
+    std::vector<std::vector<uint8_t>> _cornerSlicePermPtb;
+    std::vector<std::vector<uint8_t>> _edgeTopBottomSlicePermPtb;
 };

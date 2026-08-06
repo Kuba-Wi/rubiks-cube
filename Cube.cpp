@@ -71,9 +71,8 @@ Cube::Cube()
     buildCornerPermMovesTable();
     buildTopBottomEdgePermMovesTable();
     buildUDSlicePermMovesTable();
-    buildCornerPermPtb();
-    buildEdgeTopBottomPermPtb();
-    buildUDSlicePermPtb();
+    buildCornerSlicePermPtb();
+    buildEdgeTopBottomSlicePermPtb();
 
     resetCubeToSolved();
 }
@@ -85,6 +84,28 @@ void Cube::resetCubeToSolved()
 
     std::iota(_cornerPerm.begin(), _cornerPerm.end(), 0);
     std::iota(_edgePerm.begin(), _edgePerm.end(), 0);
+}
+
+void Cube::solveCube()
+{
+    std::vector<Move> movesToG1 = findMovesToG1State();
+    for (Move move : movesToG1)
+    {
+        _moveFunctions[move]();
+        std::cout << "Move to G1: " << moveToString(move) << std::endl;
+    }
+    std::vector<Move> movesToSolved = findMovesFromG1ToSolvedState();
+
+    // for (Move move : movesToG1)
+    // {
+    //     std::cout << "Move: " << moveToString(move) << std::endl;
+    // }
+
+    for (Move move : movesToSolved)
+    {
+        std::cout << "Move: " << moveToString(move) << std::endl;
+        _moveFunctions[move]();
+    }
 }
 
 void Cube::moveU()
@@ -710,7 +731,7 @@ void Cube::setUDSlicePermFromIndex(uint32_t index)
     }
 
     std::vector<uint8_t> availableEdges(Edge::EdgesCountUDSlice);
-    std::iota(availableEdges.begin(), availableEdges.end(), 0);
+    std::iota(availableEdges.begin(), availableEdges.end(), static_cast<uint8_t>(Edge::FL));
     _edgePerm.fill(0);
     for (size_t i = 0; i < Edge::EdgesCountUDSlice; ++i)
     {
@@ -865,85 +886,76 @@ void Cube::buildFlipSlicePtb()
     }
 }
 
-void Cube::buildCornerPermPtb()
+void Cube::buildCornerSlicePermPtb()
 {
     constexpr uint8_t notSetValue = std::numeric_limits<uint8_t>::max();
     resetCubeToSolved();
-    uint32_t initialPerm = getCornerPerm();
+    uint32_t initialCornerPerm = getCornerPerm();
+    uint32_t initialUDSlice = getUDSlicePerm();
 
-    _cornerPermPtb.resize(CORNER_PERM_COUNT);
-    _cornerPermPtb[initialPerm] = 0; // The solved state has a distance of 0
-    std::queue<uint32_t> nextStates;
-    nextStates.push(initialPerm);
-    while (!nextStates.empty())
+    _cornerSlicePermPtb.resize(CORNER_PERM_COUNT);
+    for (auto& row : _cornerSlicePermPtb)
     {
-        uint32_t currentPerm = nextStates.front();
-        nextStates.pop();
-        for (size_t move = 0; move < Move::MovesCount; ++move)
-        {
-            uint32_t nextPerm = _cornerPermMovesTable[currentPerm][static_cast<Move>(move)];
-            if (_cornerPermPtb[nextPerm] == notSetValue)
-            {
-                _cornerPermPtb[nextPerm] = _cornerPermPtb[currentPerm] + 1;
-                nextStates.push(nextPerm);
-            }
-        }
+        row.resize(UDSLICE_COUNT);
+        std::fill(row.begin(), row.end(), notSetValue);
     }
-}
 
-void Cube::buildEdgeTopBottomPermPtb()
-{
-    constexpr uint8_t notSetValue = std::numeric_limits<uint8_t>::max();
-    resetCubeToSolved();
-    uint32_t initialPerm = getTopBottomEdgePerm();
-
-    _edgeTopBottomPermPtb.resize(EDGE_PERM_COUNT);
-    _edgeTopBottomPermPtb[initialPerm] = 0; // The solved state has a distance of 0
-    std::queue<uint32_t> nextStates;
-    nextStates.push(initialPerm);
+    _cornerSlicePermPtb[initialCornerPerm][initialUDSlice] = 0; // The solved state has a distance of 0
+    std::queue<std::pair<uint32_t, uint32_t>> nextStates;
+    nextStates.push({initialCornerPerm, initialUDSlice});
     while (!nextStates.empty())
     {
-        uint32_t currentPerm = nextStates.front();
+        auto [currentCornerPerm, currentUDSlice] = nextStates.front();
         nextStates.pop();
         for (const auto& [move, _] : _moveFunctionsPhase2)
         {
-            uint32_t nextPerm = _edgeTopBottomPermMovesTable[currentPerm][move];
-            if (_edgeTopBottomPermPtb[nextPerm] == notSetValue)
+            uint32_t nextCornerPerm = _cornerPermMovesTable[currentCornerPerm][move];
+            uint32_t nextUDSlice = _udSlicePermMovesTable[currentUDSlice][move];
+            if (_cornerSlicePermPtb[nextCornerPerm][nextUDSlice] == notSetValue)
             {
-                _edgeTopBottomPermPtb[nextPerm] = _edgeTopBottomPermPtb[currentPerm] + 1;
-                nextStates.push(nextPerm);
+                _cornerSlicePermPtb[nextCornerPerm][nextUDSlice] = _cornerSlicePermPtb[currentCornerPerm][currentUDSlice] + 1;
+                nextStates.push({nextCornerPerm, nextUDSlice});
             }
         }
     }
 }
 
-void Cube::buildUDSlicePermPtb()
+void Cube::buildEdgeTopBottomSlicePermPtb()
 {
     constexpr uint8_t notSetValue = std::numeric_limits<uint8_t>::max();
     resetCubeToSolved();
-    uint32_t initialPerm = getUDSlicePerm();
+    uint32_t initialEdgePerm = getTopBottomEdgePerm();
+    uint32_t initialUDSlice = getUDSlicePerm();
 
-    _udSlicePermPtb.resize(UDSLICE_PERM_COUNT);
-    _udSlicePermPtb[initialPerm] = 0; // The solved state has a distance of 0
-    std::queue<uint32_t> nextStates;
-    nextStates.push(initialPerm);
+    _edgeTopBottomSlicePermPtb.resize(EDGE_PERM_COUNT);
+    for (auto& row : _edgeTopBottomSlicePermPtb)
+    {
+        row.resize(UDSLICE_COUNT);
+        std::fill(row.begin(), row.end(), notSetValue);
+    }
+
+    _edgeTopBottomSlicePermPtb[initialEdgePerm][initialUDSlice] = 0; // The solved state has a distance of 0
+    std::queue<std::pair<uint32_t, uint32_t>> nextStates;
+    nextStates.push({initialEdgePerm, initialUDSlice});
     while (!nextStates.empty())
     {
-        uint32_t currentPerm = nextStates.front();
+        auto [currentEdgePerm, currentUDSlice] = nextStates.front();
         nextStates.pop();
         for (const auto& [move, _] : _moveFunctionsPhase2)
         {
-            uint32_t nextPerm = _udSlicePermMovesTable[currentPerm][move];
-            if (_udSlicePermPtb[nextPerm] == notSetValue)
+            uint32_t nextEdgePerm = _edgeTopBottomPermMovesTable[currentEdgePerm][move];
+            uint32_t nextUDSlice = _udSlicePermMovesTable[currentUDSlice][move];
+            if (_edgeTopBottomSlicePermPtb[nextEdgePerm][nextUDSlice] == notSetValue)
             {
-                _udSlicePermPtb[nextPerm] = _udSlicePermPtb[currentPerm] + 1;
-                nextStates.push(nextPerm);
+                _edgeTopBottomSlicePermPtb[nextEdgePerm][nextUDSlice] =
+                    _edgeTopBottomSlicePermPtb[currentEdgePerm][currentUDSlice] + 1;
+                nextStates.push({nextEdgePerm, nextUDSlice});
             }
         }
     }
 }
 
-void Cube::findMovesToG1State()
+std::vector<Cube::Move> Cube::findMovesToG1State()
 {
     uint32_t currentTwist = getTwist();
     uint32_t currentFlip = getFlip();
@@ -957,12 +969,7 @@ void Cube::findMovesToG1State()
             searchStatesToGetToG1State(currentTwist, currentFlip, currentUDSlice, depth, currentLimit, movesSequence);
         if (result == 0)
         {
-            for (Move move : resultMovesSequence)
-            {
-                std::cout << "Move: " << moveToString(move) << std::endl;
-                _moveFunctions[move]();
-            }
-            return;
+            return resultMovesSequence;
         }
         currentLimit = result;
     }
@@ -973,7 +980,7 @@ std::pair<uint8_t, std::vector<Cube::Move>> Cube::searchStatesToGetToG1State(uin
                                                                              uint32_t currentUDSlice,
                                                                              uint8_t depth,
                                                                              uint8_t currentLimit,
-                                                                             std::vector<Move> movesSequence)
+                                                                             std::vector<Move> movesSequence) const
 {
     uint8_t value = std::max(_twistSlicePtb[currentTwist][currentUDSlice], _flipSlicePtb[currentFlip][currentUDSlice]);
     if (value == 0)
@@ -1000,6 +1007,95 @@ std::pair<uint8_t, std::vector<Cube::Move>> Cube::searchStatesToGetToG1State(uin
         movesSequence.push_back(static_cast<Move>(move));
         auto [tmpResult, tmpMovesSequence] =
             searchStatesToGetToG1State(nextTwist, nextFlip, nextUDSlice, depth + 1, currentLimit, movesSequence);
+        if (tmpResult == 0)
+        {
+            return {tmpResult, tmpMovesSequence};
+        }
+        if (tmpResult < minResult)
+        {
+            minResult = tmpResult;
+            bestMovesSequence = movesSequence;
+        }
+        movesSequence.pop_back();
+    }
+    return {minResult, bestMovesSequence};
+}
+
+std::vector<Cube::Move> Cube::findMovesFromG1ToSolvedState()
+{
+    uint32_t currentCornerPerm = getCornerPerm();
+    uint32_t currentTopBottomEdgePerm = getTopBottomEdgePerm();
+    uint32_t currentUDSlicePerm = getUDSlicePerm();
+    uint8_t currentLimit = std::max(_cornerSlicePermPtb[currentCornerPerm][currentUDSlicePerm],
+                                    _edgeTopBottomSlicePermPtb[currentTopBottomEdgePerm][currentUDSlicePerm]);
+    uint8_t depth = 0;
+    std::vector<Move> movesSequence;
+    while (true)
+    {
+        auto [result, resultMovesSequence] = searchStatesToGetToSolvedState(
+            currentCornerPerm, currentTopBottomEdgePerm, currentUDSlicePerm, depth, currentLimit, movesSequence);
+        if (result == 0)
+        {
+            return resultMovesSequence;
+        }
+        currentLimit = result;
+    }
+}
+
+std::pair<uint8_t, std::vector<Cube::Move>> Cube::searchStatesToGetToSolvedState(uint32_t currentCornerPerm,
+                                                                                 uint32_t currentTopBottomEdgePerm,
+                                                                                 uint32_t currentUDSlicePerm,
+                                                                                 uint8_t depth,
+                                                                                 uint8_t currentLimit,
+                                                                                 std::vector<Move> movesSequence)
+{
+    uint8_t value = std::max(_cornerSlicePermPtb[currentCornerPerm][currentUDSlicePerm],
+                             _edgeTopBottomSlicePermPtb[currentTopBottomEdgePerm][currentUDSlicePerm]);
+    if (value == 0)
+    {
+        return {value, movesSequence};
+    }
+    value += depth;
+    if (value > currentLimit)
+    {
+        return {value, {}};
+    }
+
+    uint8_t minResult = std::numeric_limits<uint8_t>::max();
+    std::vector<Move> bestMovesSequence; // moves sequence that leads to the state with minResult value
+    uint32_t nextCornerPerm;
+    uint32_t nextTopBottomEdgePerm;
+    uint32_t nextUDSlicePerm;
+
+    std::vector<Move> movesU{Move::U, Move::UPrime, Move::DoubleU};
+    std::vector<Move> movesD{Move::D, Move::DPrime, Move::DoubleD};
+    for (const auto& [move, _] : _moveFunctionsPhase2)
+    {
+        if (!movesSequence.empty())
+        {
+            if (movesSequence.back() == move)
+            {
+                continue; // Skip the same move as the last one
+            }
+            if (std::find(movesU.begin(), movesU.end(), movesSequence.back()) != movesU.end() &&
+                std::find(movesU.begin(), movesU.end(), move) != movesU.end())
+            {
+                continue; // Skip if the last move and the current move are both U moves
+            }
+            if (std::find(movesD.begin(), movesD.end(), movesSequence.back()) != movesD.end() &&
+                std::find(movesD.begin(), movesD.end(), move) != movesD.end())
+            {
+                continue; // Skip if the last move and the current move are both D moves
+            }
+        }
+
+        nextCornerPerm = _cornerPermMovesTable[currentCornerPerm][move];
+        nextTopBottomEdgePerm = _edgeTopBottomPermMovesTable[currentTopBottomEdgePerm][move];
+        nextUDSlicePerm = _udSlicePermMovesTable[currentUDSlicePerm][move];
+
+        movesSequence.push_back(move);
+        auto [tmpResult, tmpMovesSequence] = searchStatesToGetToSolvedState(
+            nextCornerPerm, nextTopBottomEdgePerm, nextUDSlicePerm, depth + 1, currentLimit, movesSequence);
         if (tmpResult == 0)
         {
             return {tmpResult, tmpMovesSequence};
