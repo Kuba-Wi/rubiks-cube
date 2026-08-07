@@ -1,4 +1,5 @@
 #include "Cube.h"
+#include "ImagesManager.h"
 
 int main()
 {
@@ -33,6 +34,9 @@ int main()
     cube.printCube();
     cube.solveCube();
     cube.printCube();
+
+    ImagesManager imagesManager("../images");
+    imagesManager.loadCubeColorsData();
 
     return 0;
 }
