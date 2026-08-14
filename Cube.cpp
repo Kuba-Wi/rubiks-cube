@@ -4,6 +4,31 @@
 #include <iostream>
 #include <numeric>
 #include <queue>
+#include <set>
+
+namespace
+{
+enum StickerRow
+{
+    TopRow = 0,
+    MiddleRow,
+    BottomRow
+};
+
+enum StickerColumn
+{
+    LeftCol = 0,
+    MiddleCol,
+    RightCol
+};
+
+bool haveTheSameColors(const std::vector<StickerColor>& colors1, const std::vector<StickerColor>& colors2)
+{
+    auto colors1Set = std::set<StickerColor>(colors1.begin(), colors1.end());
+    auto colors2Set = std::set<StickerColor>(colors2.begin(), colors2.end());
+    return colors1Set == colors2Set;
+};
+} // namespace
 
 Cube::Cube()
 {
@@ -96,11 +121,6 @@ void Cube::solveCube()
     }
     std::vector<Move> movesToSolved = findMovesFromG1ToSolvedState();
 
-    // for (Move move : movesToG1)
-    // {
-    //     std::cout << "Move: " << moveToString(move) << std::endl;
-    // }
-
     for (Move move : movesToSolved)
     {
         std::cout << "Move: " << moveToString(move) << std::endl;
@@ -173,14 +193,14 @@ void Cube::moveD()
     const uint8_t tempCornPerm = _cornerPerm[Corner::DBR];
     _cornerPerm[Corner::DBR] = _cornerPerm[Corner::DFR];
     _cornerPerm[Corner::DFR] = _cornerPerm[Corner::DFL];
-    _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DRL];
-    _cornerPerm[Corner::DRL] = tempCornPerm;
+    _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DBL];
+    _cornerPerm[Corner::DBL] = tempCornPerm;
 
     const uint8_t tempCornOri = _cornerOrient[Corner::DBR];
     _cornerOrient[Corner::DBR] = _cornerOrient[Corner::DFR];
     _cornerOrient[Corner::DFR] = _cornerOrient[Corner::DFL];
-    _cornerOrient[Corner::DFL] = _cornerOrient[Corner::DRL];
-    _cornerOrient[Corner::DRL] = tempCornOri;
+    _cornerOrient[Corner::DFL] = _cornerOrient[Corner::DBL];
+    _cornerOrient[Corner::DBL] = tempCornOri;
 
     const uint8_t tempEdgePerm = _edgePerm[Edge::BD];
     _edgePerm[Edge::BD] = _edgePerm[Edge::RD];
@@ -197,14 +217,14 @@ void Cube::moveD()
 
 void Cube::moveDPrime()
 {
-    const uint8_t tempCornPerm = _cornerPerm[Corner::DRL];
-    _cornerPerm[Corner::DRL] = _cornerPerm[Corner::DFL];
+    const uint8_t tempCornPerm = _cornerPerm[Corner::DBL];
+    _cornerPerm[Corner::DBL] = _cornerPerm[Corner::DFL];
     _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DFR];
     _cornerPerm[Corner::DFR] = _cornerPerm[Corner::DBR];
     _cornerPerm[Corner::DBR] = tempCornPerm;
 
-    const uint8_t tempCornOri = _cornerOrient[Corner::DRL];
-    _cornerOrient[Corner::DRL] = _cornerOrient[Corner::DFL];
+    const uint8_t tempCornOri = _cornerOrient[Corner::DBL];
+    _cornerOrient[Corner::DBL] = _cornerOrient[Corner::DFL];
     _cornerOrient[Corner::DFL] = _cornerOrient[Corner::DFR];
     _cornerOrient[Corner::DFR] = _cornerOrient[Corner::DBR];
     _cornerOrient[Corner::DBR] = tempCornOri;
@@ -290,14 +310,14 @@ void Cube::move2F()
 
 void Cube::moveB()
 {
-    const uint8_t tempCornPerm = _cornerPerm[Corner::DRL];
-    _cornerPerm[Corner::DRL] = _cornerPerm[Corner::UBL];
+    const uint8_t tempCornPerm = _cornerPerm[Corner::DBL];
+    _cornerPerm[Corner::DBL] = _cornerPerm[Corner::UBL];
     _cornerPerm[Corner::UBL] = _cornerPerm[Corner::UBR];
     _cornerPerm[Corner::UBR] = _cornerPerm[Corner::DBR];
     _cornerPerm[Corner::DBR] = tempCornPerm;
 
-    const uint8_t tempCornOri = _cornerOrient[Corner::DRL];
-    _cornerOrient[Corner::DRL] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 2) % 3);
+    const uint8_t tempCornOri = _cornerOrient[Corner::DBL];
+    _cornerOrient[Corner::DBL] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 2) % 3);
     _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::UBR] + 1) % 3);
     _cornerOrient[Corner::UBR] = static_cast<uint8_t>((_cornerOrient[Corner::DBR] + 2) % 3);
     _cornerOrient[Corner::DBR] = static_cast<uint8_t>((tempCornOri + 1) % 3);
@@ -320,14 +340,14 @@ void Cube::moveBPrime()
     const uint8_t tempCornPerm = _cornerPerm[Corner::DBR];
     _cornerPerm[Corner::DBR] = _cornerPerm[Corner::UBR];
     _cornerPerm[Corner::UBR] = _cornerPerm[Corner::UBL];
-    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::DRL];
-    _cornerPerm[Corner::DRL] = tempCornPerm;
+    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::DBL];
+    _cornerPerm[Corner::DBL] = tempCornPerm;
 
     const uint8_t tempCornOri = _cornerOrient[Corner::DBR];
     _cornerOrient[Corner::DBR] = static_cast<uint8_t>((_cornerOrient[Corner::UBR] + 1) % 3);
     _cornerOrient[Corner::UBR] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 2) % 3);
-    _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::DRL] + 1) % 3);
-    _cornerOrient[Corner::DRL] = static_cast<uint8_t>((tempCornOri + 2) % 3);
+    _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::DBL] + 1) % 3);
+    _cornerOrient[Corner::DBL] = static_cast<uint8_t>((tempCornOri + 2) % 3);
 
     const uint8_t tempEdgePerm = _edgePerm[Edge::BR];
     _edgePerm[Edge::BR] = _edgePerm[Edge::UB];
@@ -412,14 +432,14 @@ void Cube::moveL()
 {
     const uint8_t tempCornPerm = _cornerPerm[Corner::UFL];
     _cornerPerm[Corner::UFL] = _cornerPerm[Corner::UBL];
-    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::DRL];
-    _cornerPerm[Corner::DRL] = _cornerPerm[Corner::DFL];
+    _cornerPerm[Corner::UBL] = _cornerPerm[Corner::DBL];
+    _cornerPerm[Corner::DBL] = _cornerPerm[Corner::DFL];
     _cornerPerm[Corner::DFL] = tempCornPerm;
 
     const uint8_t tempCornOri = _cornerOrient[Corner::UFL];
     _cornerOrient[Corner::UFL] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 1) % 3);
-    _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::DRL] + 2) % 3);
-    _cornerOrient[Corner::DRL] = static_cast<uint8_t>((_cornerOrient[Corner::DFL] + 1) % 3);
+    _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::DBL] + 2) % 3);
+    _cornerOrient[Corner::DBL] = static_cast<uint8_t>((_cornerOrient[Corner::DFL] + 1) % 3);
     _cornerOrient[Corner::DFL] = static_cast<uint8_t>((tempCornOri + 2) % 3);
 
     const uint8_t tempEdgePerm = _edgePerm[Edge::UL];
@@ -438,14 +458,14 @@ void Cube::moveL()
 void Cube::moveLPrime()
 {
     const uint8_t tempCornPerm = _cornerPerm[Corner::DFL];
-    _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DRL];
-    _cornerPerm[Corner::DRL] = _cornerPerm[Corner::UBL];
+    _cornerPerm[Corner::DFL] = _cornerPerm[Corner::DBL];
+    _cornerPerm[Corner::DBL] = _cornerPerm[Corner::UBL];
     _cornerPerm[Corner::UBL] = _cornerPerm[Corner::UFL];
     _cornerPerm[Corner::UFL] = tempCornPerm;
 
     const uint8_t tempCornOri = _cornerOrient[Corner::DFL];
-    _cornerOrient[Corner::DFL] = static_cast<uint8_t>((_cornerOrient[Corner::DRL] + 2) % 3);
-    _cornerOrient[Corner::DRL] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 1) % 3);
+    _cornerOrient[Corner::DFL] = static_cast<uint8_t>((_cornerOrient[Corner::DBL] + 2) % 3);
+    _cornerOrient[Corner::DBL] = static_cast<uint8_t>((_cornerOrient[Corner::UBL] + 1) % 3);
     _cornerOrient[Corner::UBL] = static_cast<uint8_t>((_cornerOrient[Corner::UFL] + 2) % 3);
     _cornerOrient[Corner::UFL] = static_cast<uint8_t>((tempCornOri + 1) % 3);
 
@@ -955,7 +975,7 @@ void Cube::buildEdgeTopBottomSlicePermPtb()
     }
 }
 
-std::vector<Cube::Move> Cube::findMovesToG1State()
+std::vector<Cube::Move> Cube::findMovesToG1State() const
 {
     uint32_t currentTwist = getTwist();
     uint32_t currentFlip = getFlip();
@@ -1021,7 +1041,7 @@ std::pair<uint8_t, std::vector<Cube::Move>> Cube::searchStatesToGetToG1State(uin
     return {minResult, bestMovesSequence};
 }
 
-std::vector<Cube::Move> Cube::findMovesFromG1ToSolvedState()
+std::vector<Cube::Move> Cube::findMovesFromG1ToSolvedState() const
 {
     uint32_t currentCornerPerm = getCornerPerm();
     uint32_t currentTopBottomEdgePerm = getTopBottomEdgePerm();
@@ -1047,7 +1067,7 @@ std::pair<uint8_t, std::vector<Cube::Move>> Cube::searchStatesToGetToSolvedState
                                                                                  uint32_t currentUDSlicePerm,
                                                                                  uint8_t depth,
                                                                                  uint8_t currentLimit,
-                                                                                 std::vector<Move> movesSequence)
+                                                                                 std::vector<Move> movesSequence) const
 {
     uint8_t value = std::max(_cornerSlicePermPtb[currentCornerPerm][currentUDSlicePerm],
                              _edgeTopBottomSlicePermPtb[currentTopBottomEdgePerm][currentUDSlicePerm]);
@@ -1089,9 +1109,9 @@ std::pair<uint8_t, std::vector<Cube::Move>> Cube::searchStatesToGetToSolvedState
             }
         }
 
-        nextCornerPerm = _cornerPermMovesTable[currentCornerPerm][move];
-        nextTopBottomEdgePerm = _edgeTopBottomPermMovesTable[currentTopBottomEdgePerm][move];
-        nextUDSlicePerm = _udSlicePermMovesTable[currentUDSlicePerm][move];
+        nextCornerPerm = _cornerPermMovesTable[currentCornerPerm].at(move);
+        nextTopBottomEdgePerm = _edgeTopBottomPermMovesTable[currentTopBottomEdgePerm].at(move);
+        nextUDSlicePerm = _udSlicePermMovesTable[currentUDSlicePerm].at(move);
 
         movesSequence.push_back(move);
         auto [tmpResult, tmpMovesSequence] = searchStatesToGetToSolvedState(
@@ -1153,6 +1173,191 @@ std::string Cube::moveToString(Move move) const
         default:
             return "";
     }
+}
+
+bool Cube::setCubeStateFromColorsData(const CubeColorsData& cubeColorsData)
+{
+    const auto faceColorsMap = cubeColorsData.getFaceColors();
+    constexpr size_t facesCount = 6;
+    if (faceColorsMap.size() != facesCount)
+    {
+        std::cerr << "Invalid cube colors data. Expected 6 faces, but got " << faceColorsMap.size() << " faces." << std::endl;
+        return false;
+    }
+
+    if (std::any_of(faceColorsMap.begin(),
+                    faceColorsMap.end(),
+                    [](const auto& pair)
+                    {
+                        return pair.first == StickerColor::Unknown;
+                    }))
+    {
+        std::cerr << "Invalid cube colors data. Unknown face color found." << std::endl;
+        return false;
+    }
+
+    return setCornersFromColors(faceColorsMap) && setEdgesFromColors(faceColorsMap);
+}
+
+bool Cube::setEdgesFromColors(const std::map<StickerColor, CubeColorsData::FaceColors>& faceColorsMap)
+{
+    const auto& faceU = faceColorsMap.at(StickerColor::Yellow);
+    const auto& faceF = faceColorsMap.at(StickerColor::Blue);
+    const auto& faceR = faceColorsMap.at(StickerColor::Red);
+    const auto& faceB = faceColorsMap.at(StickerColor::Green);
+    const auto& faceL = faceColorsMap.at(StickerColor::Orange);
+    const auto& faceD = faceColorsMap.at(StickerColor::White);
+
+    // order of colors in the vector is important, it is used to determine the orientation of the edges
+    const std::map<Edge, std::vector<StickerColor>> edgeStickerColorsCurrent = {
+        {Edge::UF, {faceU[BottomRow][MiddleCol], faceF[TopRow][MiddleCol]}   },
+        {Edge::UR, {faceU[MiddleRow][RightCol], faceR[TopRow][MiddleCol]}    },
+        {Edge::UB, {faceU[TopRow][MiddleCol], faceB[TopRow][MiddleCol]}      },
+        {Edge::UL, {faceU[MiddleRow][LeftCol], faceL[TopRow][MiddleCol]}     },
+        {Edge::FR, {faceF[MiddleRow][RightCol], faceR[MiddleRow][LeftCol]}   },
+        {Edge::FL, {faceF[MiddleRow][LeftCol], faceL[MiddleRow][RightCol]}   },
+        {Edge::BR, {faceB[MiddleRow][LeftCol], faceR[MiddleRow][RightCol]}   },
+        {Edge::BL, {faceB[MiddleRow][RightCol], faceL[MiddleRow][LeftCol]}   },
+        {Edge::FD, {faceD[TopRow][MiddleCol], faceF[BottomRow][MiddleCol]}   },
+        {Edge::RD, {faceD[MiddleRow][RightCol], faceR[BottomRow][MiddleCol]} },
+        {Edge::BD, {faceD[BottomRow][MiddleCol], faceB[BottomRow][MiddleCol]}},
+        {Edge::LD, {faceD[MiddleRow][LeftCol], faceL[BottomRow][MiddleCol]}  }
+    };
+
+    static const std::map<Edge, std::vector<StickerColor>> edgeStickerColorsSolved = {
+        {Edge::UF, {StickerColor::Yellow, StickerColor::Blue}  },
+        {Edge::UR, {StickerColor::Yellow, StickerColor::Red}   },
+        {Edge::UB, {StickerColor::Yellow, StickerColor::Green} },
+        {Edge::UL, {StickerColor::Yellow, StickerColor::Orange}},
+        {Edge::FR, {StickerColor::Blue, StickerColor::Red}     },
+        {Edge::FL, {StickerColor::Blue, StickerColor::Orange}  },
+        {Edge::BR, {StickerColor::Green, StickerColor::Red}    },
+        {Edge::BL, {StickerColor::Green, StickerColor::Orange} },
+        {Edge::FD, {StickerColor::White, StickerColor::Blue}   },
+        {Edge::RD, {StickerColor::White, StickerColor::Red}    },
+        {Edge::BD, {StickerColor::White, StickerColor::Green}  },
+        {Edge::LD, {StickerColor::White, StickerColor::Orange} }
+    };
+
+    for (const auto& [edge, colorsSolved] : edgeStickerColorsSolved)
+    {
+        const auto it = std::find_if(edgeStickerColorsCurrent.begin(),
+                                     edgeStickerColorsCurrent.end(),
+                                     [&](const auto& pair)
+                                     {
+                                         return haveTheSameColors(pair.second, colorsSolved);
+                                     });
+
+        if (it != edgeStickerColorsCurrent.end())
+        {
+            _edgePerm[it->first] = edge;
+        }
+        else
+        {
+            std::cerr << "Invalid cube colors data. Could not find edge with colors: " << toString(colorsSolved[0]) << ", "
+                      << toString(colorsSolved[1]) << "." << std::endl;
+            return false;
+        }
+    }
+
+    _edgeOrient.fill(1);
+    for (const auto& [edge, colors] : edgeStickerColorsCurrent)
+    {
+        if (colors[0] == StickerColor::White || colors[0] == StickerColor::Yellow || colors[1] == StickerColor::Orange ||
+            colors[1] == StickerColor::Red)
+        {
+            _edgeOrient[edge] = 0;
+        }
+    }
+
+    const uint8_t edgeOrientationsSum = std::accumulate(_edgeOrient.begin(), _edgeOrient.end(), uint8_t{0});
+    if (edgeOrientationsSum % 2 != 0)
+    {
+        std::cerr << "Invalid cube colors data. Edges orientation not possible." << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool Cube::setCornersFromColors(const std::map<StickerColor, CubeColorsData::FaceColors>& faceColorsMap)
+{
+    const auto& faceU = faceColorsMap.at(StickerColor::Yellow);
+    const auto& faceF = faceColorsMap.at(StickerColor::Blue);
+    const auto& faceR = faceColorsMap.at(StickerColor::Red);
+    const auto& faceB = faceColorsMap.at(StickerColor::Green);
+    const auto& faceL = faceColorsMap.at(StickerColor::Orange);
+    const auto& faceD = faceColorsMap.at(StickerColor::White);
+
+    // order of colors in the vector is important, it is used to determine the orientation of the corners
+    const std::map<Corner, std::vector<StickerColor>> cornerStickerColorsCurrent = {
+        {Corner::UFL, {faceU[BottomRow][LeftCol], faceF[TopRow][LeftCol], faceL[TopRow][RightCol]}       },
+        {Corner::UFR, {faceU[BottomRow][RightCol], faceR[TopRow][LeftCol], faceF[TopRow][RightCol]}      },
+        {Corner::UBR, {faceU[TopRow][RightCol], faceB[TopRow][LeftCol], faceR[TopRow][RightCol]}         },
+        {Corner::UBL, {faceU[TopRow][LeftCol], faceL[TopRow][LeftCol], faceB[TopRow][RightCol]}          },
+        {Corner::DFL, {faceD[TopRow][LeftCol], faceL[BottomRow][RightCol], faceF[BottomRow][LeftCol]}    },
+        {Corner::DFR, {faceD[TopRow][RightCol], faceF[BottomRow][RightCol], faceR[BottomRow][LeftCol]}   },
+        {Corner::DBR, {faceD[BottomRow][RightCol], faceR[BottomRow][RightCol], faceB[BottomRow][LeftCol]}},
+        {Corner::DBL, {faceD[BottomRow][LeftCol], faceB[BottomRow][RightCol], faceL[BottomRow][LeftCol]} }
+    };
+
+    static const std::map<Corner, std::vector<StickerColor>> cornerStickerColorsSolved = {
+        {Corner::UFL, {StickerColor::Yellow, StickerColor::Blue, StickerColor::Orange} },
+        {Corner::UFR, {StickerColor::Yellow, StickerColor::Red, StickerColor::Blue}    },
+        {Corner::UBR, {StickerColor::Yellow, StickerColor::Green, StickerColor::Red}   },
+        {Corner::UBL, {StickerColor::Yellow, StickerColor::Orange, StickerColor::Green}},
+        {Corner::DFL, {StickerColor::White, StickerColor::Orange, StickerColor::Blue}  },
+        {Corner::DFR, {StickerColor::White, StickerColor::Blue, StickerColor::Red}     },
+        {Corner::DBR, {StickerColor::White, StickerColor::Red, StickerColor::Green}    },
+        {Corner::DBL, {StickerColor::White, StickerColor::Green, StickerColor::Orange} }
+    };
+
+    auto cornerOrient = [](const std::vector<StickerColor>& colors) -> uint8_t
+    {
+        if (colors[0] == StickerColor::Yellow || colors[0] == StickerColor::White)
+        {
+            return 0;
+        }
+        else if (colors[1] == StickerColor::Yellow || colors[1] == StickerColor::White)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    };
+
+    for (const auto& [corner, colorsSolved] : cornerStickerColorsSolved)
+    {
+        const auto it = std::find_if(cornerStickerColorsCurrent.begin(),
+                                     cornerStickerColorsCurrent.end(),
+                                     [&](const auto& pair)
+                                     {
+                                         return haveTheSameColors(pair.second, colorsSolved);
+                                     });
+
+        if (it != cornerStickerColorsCurrent.end())
+        {
+            _cornerPerm[it->first] = corner;
+            _cornerOrient[it->first] = cornerOrient(it->second);
+        }
+        else
+        {
+            std::cerr << "Invalid cube colors data. Could not find corner with colors: " << toString(colorsSolved[0]) << ", "
+                      << toString(colorsSolved[1]) << ", " << toString(colorsSolved[2]) << "." << std::endl;
+            return false;
+        }
+    }
+
+    const uint8_t orientationsSum = std::accumulate(_cornerOrient.begin(), _cornerOrient.end(), uint8_t{0});
+    if (orientationsSum % 3 != 0)
+    {
+        std::cerr << "Invalid cube colors data. Corners orientation not possible." << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 void Cube::printCube() const

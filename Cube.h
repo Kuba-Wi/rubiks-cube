@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cubeHelpers.h"
+
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -18,7 +20,7 @@ class Cube
         DFL,
         DFR,
         DBR,
-        DRL,
+        DBL,
         CornersCount
     };
 
@@ -177,6 +179,21 @@ public:
     void buildCornerSlicePermPtb();
     void buildEdgeTopBottomSlicePermPtb();
 
+    /*!
+     * Sets the cube state based on the given colors data.
+     * @param cubeColorsData The colors data representing the cube state.
+     * To correctly set the cube state, the colors data must include all six faces of the cube with their respective colors.
+     * Each face of the cube should be represented in correct orientation:
+     * - face with yellow center should be saved when having green face above it
+     * - face with white center - blue face above it
+     * - face with blue center - yellow face above it
+     * - face with red center - yellow face above it
+     * - face with green center - yellow face above it
+     * - face with orange center - yellow face above it
+     * If the colors data is incomplete or not in the correct orientation, the cube state may not be set correctly.
+     */
+    bool setCubeStateFromColorsData(const CubeColorsData& cubeColorsData);
+
     void printCube() const;
 
     static constexpr size_t SLICE_EDGE_COUNT = 4;      // FL, FR, BL, BR
@@ -194,12 +211,12 @@ private:
      * are all in the UD slice but in any order.
      * @return vector of moves that brings the cube to a G1 state.
      */
-    std::vector<Move> findMovesToG1State();
+    std::vector<Move> findMovesToG1State() const;
     /*!
      * Returns a vector of moves that brings the cube from a G1 state to the solved state.
      * @return vector of moves that brings the cube from a G1 state to the solved state.
      */
-    std::vector<Move> findMovesFromG1ToSolvedState();
+    std::vector<Move> findMovesFromG1ToSolvedState() const;
 
     /*!
      * Searches for a sequence of moves that brings the cube to a G1 state.
@@ -218,18 +235,22 @@ private:
 
     /*!
      * Searches for a sequence of moves that brings the cube from a G1 state to the solved state.
-     * @return a pair consisting of the distance of state A from the solved state and the corresponding moves sequence to reach
-     * state A.
-     * Note: it is invoked by findMovesFromG1ToSolvedState()
+     * @return a pair consisting of the distance of state A from the solved state and the corresponding moves sequence to
+     * reach state A. Note: it is invoked by findMovesFromG1ToSolvedState()
      */
     std::pair<uint8_t, std::vector<Move>> searchStatesToGetToSolvedState(uint32_t currentCornerPerm,
                                                                          uint32_t currentTopBottomEdgePerm,
                                                                          uint32_t currentUDSlicePerm,
                                                                          uint8_t depth,
                                                                          uint8_t currentLimit,
-                                                                         std::vector<Move> movesSequence);
+                                                                         std::vector<Move> movesSequence) const;
 
     std::string moveToString(Move move) const;
+
+    // Sets the cube edges permutation and orientation based on the given colors data.
+    bool setEdgesFromColors(const std::map<StickerColor, CubeColorsData::FaceColors>& faceColorsMap);
+    // Sets the cube corners permutation and orientation based on the given colors data.
+    bool setCornersFromColors(const std::map<StickerColor, CubeColorsData::FaceColors>& faceColorsMap);
 
     // Move functions mapped by their corresponding move index
     std::map<Move, std::function<void()>> _moveFunctions;

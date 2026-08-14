@@ -9,10 +9,10 @@ class ImagesManager
 public:
     ImagesManager(const std::string& imagesDirPath);
 
-    void loadCubeColorsData();
+    bool loadCubeColorsData();
     const CubeColorsData& getCubeColorsData() const;
 private:
-    void loadCubeColorsDataForImage(const std::string& imagePath);
+    bool loadCubeColorsDataForImage(const std::string& imagePath);
 
     CubeColorsData _cubeColorsData;
     std::string _imagesDirPath;

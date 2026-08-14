@@ -1,42 +1,36 @@
 #include "Cube.h"
 #include "ImagesManager.h"
 
-int main()
+#include <iostream>
+
+int main(int argc, char* argv[])
 {
     Cube cube;
 
-    cube.moveLPrime();
-    cube.move2U();
-    cube.moveB();
-    cube.move2D();
-    cube.moveUPrime();
-    cube.moveFPrime();
-    cube.move2R();
-    cube.move2D();
-    cube.move2B();
-    cube.moveL();
-    cube.moveRPrime();
-    cube.moveUPrime();
-    cube.move2B();
-    cube.moveLPrime();
-    cube.move2D();
-    cube.move2B();
-    cube.moveRPrime();
-    cube.moveBPrime();
-    cube.moveL();
-    cube.moveD();
-    cube.moveB();
-    cube.move2U();
-    cube.moveBPrime();
-    cube.moveR();
-    cube.move2L();
+    std::string imagesDirPath = "../images";
+    if (argc > 1)
+    {
+        imagesDirPath = argv[1];
+    }
 
+    ImagesManager imagesManager(imagesDirPath);
+    const bool cubeDataLoaded = imagesManager.loadCubeColorsData();
+    if (!cubeDataLoaded)
+    {
+        return 1;
+    }
+
+    if (!cube.setCubeStateFromColorsData(imagesManager.getCubeColorsData()))
+    {
+        std::cerr << "Failed to set cube state from colors data." << std::endl;
+        return 1;
+    }
+    std::cout << "\nInitial cube state:\n";
     cube.printCube();
+    std::cout << "\nSolving the cube...\n";
     cube.solveCube();
+    std::cout << "\nCube state after solving:\n";
     cube.printCube();
-
-    ImagesManager imagesManager("../images");
-    imagesManager.loadCubeColorsData();
 
     return 0;
 }
