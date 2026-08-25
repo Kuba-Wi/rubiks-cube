@@ -21,16 +21,18 @@ class CubeColorsData
 public:
     static constexpr size_t rowColumnSize = 3;
     using FaceColors = std::array<std::array<StickerColor, rowColumnSize>, rowColumnSize>;
+
+    static StickerColor getCenterColor(const FaceColors& colors)
+    {
+        return colors[rowColumnSize / 2][rowColumnSize / 2];
+    }
+
     std::map<StickerColor, FaceColors> getFaceColors() const
     {
         return _faceColors;
     }
 
-    void addFaceColors(const FaceColors& colors)
-    {
-        static constexpr size_t centerIndex = 1;
-        _faceColors[colors[centerIndex][centerIndex]] = colors;
-    }
+    bool addFaceColors(const FaceColors& colors);
 
 private:
     std::map<StickerColor, FaceColors> _faceColors;

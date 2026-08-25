@@ -10,6 +10,8 @@ add_executable(rubiks-cube
     main.cpp
     Cube.cpp
     ImagesManager.cpp
+    ImagesStreamReceiver.cpp
+    ImagesReader.cpp
     cubeHelpers.cpp
 )
 
