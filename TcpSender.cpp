@@ -1,84 +1,75 @@
+#include "TcpSender.h"
+
 #include <arpa/inet.h>
+#include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <sys/socket.h>
+#include <thread>
 #include <unistd.h>
 
-#include <thread>
-#include <chrono>
-
-int main()
+TcpSender::TcpSender(const std::string& serverIp, uint16_t port) :
+    _serverIp(serverIp),
+    _port(port),
+    _sock(-1)
 {
-    const char* SERVER_IP = "192.168.5.9";
-    const int PORT = 5000;
+}
 
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
+TcpSender::~TcpSender()
+{
+    if (_sock >= 0)
+    {
+        close(_sock);
+    }
+}
 
-    if (sock < 0)
+bool TcpSender::connectToServer()
+{
+    _sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (_sock < 0)
     {
         perror("socket");
-        return 1;
+        return false;
     }
 
     sockaddr_in serverAddr{};
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT);
+    serverAddr.sin_port = htons(_port);
 
-    
-    if (inet_pton(AF_INET, SERVER_IP, &serverAddr.sin_addr) <= 0)
+    if (inet_pton(AF_INET, _serverIp.c_str(), &serverAddr.sin_addr) <= 0)
     {
         std::cerr << "Wrong IP\n";
-        close(sock);
-        return 1;
+        close(_sock);
+        return false;
     }
-    
+
     sockaddr address;
     std::memcpy(&address, &serverAddr, sizeof(serverAddr)); // memcpy to avoid strict aliasing issues
 
-    if (connect(sock, &address, sizeof(address)) < 0)
+    if (connect(_sock, &address, sizeof(address)) < 0)
     {
         perror("connect");
-        close(sock);
-        return 1;
+        close(_sock);
+        return false;
     }
 
     std::cout << "Connected.\n";
+    return true;
+}
 
-    auto sendData = [&sock](uint8_t servoIndex, uint8_t angle, int delayMs = 1000) {
-        uint8_t data[2] = {servoIndex, angle};
-        ssize_t sentBytes = send(sock, data, sizeof(data), 0);
-        if (sentBytes < 0)
-        {
-            perror("send");
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
-    };
-
-    sendData(0, 0);
-    sendData(1, 0, 2000);
-
-
-    while (true)
+void TcpSender::sendData(const std::vector<uint8_t>& data)
+{
+    if (_sock < 0)
     {
-        sendData(1, 58);
-        sendData(0, 180, 1500);
-        sendData(1, 88);
-        sendData(0, 0, 1500);
-        sendData(1, 58);
-        sendData(0, 90);
-
-        sendData(1, 0);
-        sendData(1, 58);
-        sendData(1, 0);
-        sendData(1, 58);
-
-        sendData(0, 180);
-        sendData(1, 88);
-        sendData(0, 90);
+        std::cerr << "Socket is not connected\n";
+        return;
     }
 
-    close(sock);
-
-    return 0;
+    ssize_t sentBytes = send(_sock, data.data(), data.size(), 0);
+    if (sentBytes < 0)
+    {
+        perror("send");
+    }
 }

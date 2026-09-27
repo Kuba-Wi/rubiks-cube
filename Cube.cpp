@@ -111,7 +111,7 @@ void Cube::resetCubeToSolved()
     std::iota(_edgePerm.begin(), _edgePerm.end(), 0);
 }
 
-void Cube::solveCube()
+std::vector<Cube::Move> Cube::solveCube()
 {
     std::vector<Move> movesToG1 = findMovesToG1State();
     for (Move move : movesToG1)
@@ -126,6 +126,9 @@ void Cube::solveCube()
         std::cout << "Move: " << moveToString(move) << std::endl;
         _moveFunctions[move]();
     }
+
+    movesToG1.insert(movesToG1.end(), movesToSolved.begin(), movesToSolved.end());
+    return movesToG1;
 }
 
 void Cube::moveU()

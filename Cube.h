@@ -75,7 +75,9 @@ public:
     Cube& operator=(const Cube& other) = delete;
 
     void resetCubeToSolved();
-    void solveCube();
+
+    // Solves the cube and returns a vector of moves that solves it.
+    std::vector<Move> solveCube();
 
     void moveU();
     void moveUPrime();

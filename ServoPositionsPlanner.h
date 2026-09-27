@@ -46,6 +46,16 @@ public:
     std::vector<std::variant<BottomServoPosition, TopServoPosition>> planServoPositionsSequence(
         const std::vector<Cube::Move>& movesSequence);
 
+    static BottomServoPosition defaultBottomServoPosition()
+    {
+        return BottomServoPosition::Center;
+    }
+
+    static TopServoPosition defaultTopServoPosition()
+    {
+        return TopServoPosition::Up;
+    }
+
 private:
     void reset();
     void planServoPositionsForMove(Cube::Move move);

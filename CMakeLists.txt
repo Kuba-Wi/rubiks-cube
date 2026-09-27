@@ -13,7 +13,10 @@ add_executable(rubiks-cube
     ImagesStreamReceiver.cpp
     ImagesReader.cpp
     cubeHelpers.cpp
+    CubeSolver.cpp
     ServoPositionsPlanner.cpp
+    ServoControllerTcp.cpp
+    TcpSender.cpp
 )
 
 target_include_directories(rubiks-cube PRIVATE ${OpenCV_INCLUDE_DIRS})

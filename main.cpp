@@ -1,4 +1,5 @@
 #include "Cube.h"
+#include "CubeSolver.h"
 #include "ImagesManager.h"
 #include "ImagesReader.h"
 #include "ImagesStreamReceiver.h"
@@ -38,7 +39,8 @@ int main(int argc, char* argv[])
     std::cout << "\nInitial cube state:\n";
     cube.printCube();
     std::cout << "\nSolving the cube...\n";
-    cube.solveCube();
+    CubeSolver cubeSolver(std::make_unique<ServoControllerTcp>());
+    cubeSolver.solveCube(cube);
     std::cout << "\nCube state after solving:\n";
     cube.printCube();
 
