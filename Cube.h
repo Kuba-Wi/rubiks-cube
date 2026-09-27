@@ -43,6 +43,7 @@ class Cube
         EdgesCountUDSlice = 4 // edges considered in the UD slice (FL, FR, BR, BL)
     };
 
+public:
     enum Move : size_t
     {
         U = 0,
@@ -68,7 +69,6 @@ class Cube
                               // R2, L2)
     };
 
-public:
     Cube();
     ~Cube() = default;
     Cube(const Cube& other) = delete;
