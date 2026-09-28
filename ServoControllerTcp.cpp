@@ -9,7 +9,7 @@
 namespace
 {
 constexpr std::chrono::milliseconds defaultSleepTime(1000);
-constexpr std::chrono::milliseconds longSleepTime(1500);
+constexpr std::chrono::milliseconds longSleepTime(2000);
 
 enum ServoIndex : uint8_t
 {
@@ -23,7 +23,7 @@ std::vector<uint8_t> translateServoPositionToCommand(BottomServoPosition servoPo
     {
         ClockwiseAngle = 0,
         CenterAngle = 90,
-        CounterClockwiseAngle = 180
+        CounterClockwiseAngle = 180,
     };
 
     std::vector<uint8_t> command;
@@ -77,12 +77,22 @@ void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
         return;
     }
 
+    
     ServoPositionsPlanner servoPositionsPlanner;
     const auto servoPositionsSequence = servoPositionsPlanner.planServoPositionsSequence(moves);
-
+    
     BottomServoPosition currentBottomServoPosition = ServoPositionsPlanner::defaultBottomServoPosition();
     TopServoPosition currentTopServoPosition = ServoPositionsPlanner::defaultTopServoPosition();
     std::chrono::milliseconds sleepDuration = defaultSleepTime;
+
+    tcpSender.sendData(translateServoPositionToCommand(currentBottomServoPosition));
+    std::this_thread::sleep_for(defaultSleepTime);
+    tcpSender.sendData(translateServoPositionToCommand(currentTopServoPosition));
+    std::this_thread::sleep_for(defaultSleepTime);
+
+    std::cout << "Put cube in the initial position and press Enter to start solving..." << std::endl;
+    std::cin.get();
+
     for (const auto& servoPosition : servoPositionsSequence)
     {
         if (std::holds_alternative<BottomServoPosition>(servoPosition))
@@ -113,7 +123,7 @@ void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
             {
                 currentTopServoPosition = topServoPosition;
                 tcpSender.sendData(translateServoPositionToCommand(topServoPosition));
-                std::this_thread::sleep_for(sleepDuration);
+                std::this_thread::sleep_for(defaultSleepTime);
             }
         }
     }

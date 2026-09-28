@@ -193,6 +193,7 @@ public:
      * - face with green center - yellow face above it
      * - face with orange center - yellow face above it
      * If the colors data is incomplete or not in the correct orientation, the cube state may not be set correctly.
+     * Note: Front face of the cube is blue and up face is yellow.
      */
     bool setCubeStateFromColorsData(const CubeColorsData& cubeColorsData);
 

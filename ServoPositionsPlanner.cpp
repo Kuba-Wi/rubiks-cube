@@ -100,25 +100,29 @@ void ServoPositionsPlanner::planServoPositionsForMove(Cube::Move move)
 void ServoPositionsPlanner::rotateFaceClockwise(Direction face)
 {
     setFaceToBottomPosition(face);
-    if (_bottomServoPosition == BottomServoPosition::Clockwise)
-    {
-        rotateCubeCounterClockwise();
-    }
-    _servoPositionsSequence.push_back(TopServoPosition::Down);
-    rotateCubeClockwise();
-    _servoPositionsSequence.push_back(TopServoPosition::Up);
-}
-
-void ServoPositionsPlanner::rotateFaceCounterClockwise(Direction face)
-{
-    setFaceToBottomPosition(face);
     if (_bottomServoPosition == BottomServoPosition::CounterClockwise)
     {
         rotateCubeClockwise();
     }
     _servoPositionsSequence.push_back(TopServoPosition::Down);
+    _topServoPosition = TopServoPosition::Down;
     rotateCubeCounterClockwise();
     _servoPositionsSequence.push_back(TopServoPosition::Up);
+    _topServoPosition = TopServoPosition::Up;
+}
+
+void ServoPositionsPlanner::rotateFaceCounterClockwise(Direction face)
+{
+    setFaceToBottomPosition(face);
+    if (_bottomServoPosition == BottomServoPosition::Clockwise)
+    {
+        rotateCubeCounterClockwise();
+    }
+    _servoPositionsSequence.push_back(TopServoPosition::Down);
+    _topServoPosition = TopServoPosition::Down;
+    rotateCubeClockwise();
+    _servoPositionsSequence.push_back(TopServoPosition::Up);
+    _topServoPosition = TopServoPosition::Up;
 }
 
 void ServoPositionsPlanner::rotateFaceTwice(Direction face)
@@ -129,8 +133,10 @@ void ServoPositionsPlanner::rotateFaceTwice(Direction face)
         rotateCubeClockwise();
     }
     _servoPositionsSequence.push_back(TopServoPosition::Down);
+    _topServoPosition = TopServoPosition::Down;
     rotateCubeTwice();
     _servoPositionsSequence.push_back(TopServoPosition::Up);
+    _topServoPosition = TopServoPosition::Up;
 }
 
 void ServoPositionsPlanner::setFaceToBottomPosition(Direction face)
@@ -223,11 +229,14 @@ bool ServoPositionsPlanner::rotateCubeClockwise()
         }
     }
 
-    const auto frontOrientation = _cubeOrientation[Direction::Front];
-    _cubeOrientation[Direction::Front] = Direction::Right;
-    _cubeOrientation[Direction::Right] = Direction::Back;
-    _cubeOrientation[Direction::Back] = Direction::Left;
-    _cubeOrientation[Direction::Left] = frontOrientation;
+    if (_topServoPosition == TopServoPosition::Up)
+    {
+        const auto frontOrientation = _cubeOrientation[Direction::Front];
+        _cubeOrientation[Direction::Front] = _cubeOrientation[Direction::Right];
+        _cubeOrientation[Direction::Right] = _cubeOrientation[Direction::Back];
+        _cubeOrientation[Direction::Back] = _cubeOrientation[Direction::Left];
+        _cubeOrientation[Direction::Left] = frontOrientation;
+    }
     return true;
 }
 
@@ -253,11 +262,14 @@ bool ServoPositionsPlanner::rotateCubeCounterClockwise()
         }
     }
 
-    const auto frontOrientation = _cubeOrientation[Direction::Front];
-    _cubeOrientation[Direction::Front] = Direction::Left;
-    _cubeOrientation[Direction::Left] = Direction::Back;
-    _cubeOrientation[Direction::Back] = Direction::Right;
-    _cubeOrientation[Direction::Right] = frontOrientation;
+    if (_topServoPosition == TopServoPosition::Up)
+    {
+        const auto frontOrientation = _cubeOrientation[Direction::Front];
+        _cubeOrientation[Direction::Front] = _cubeOrientation[Direction::Left];
+        _cubeOrientation[Direction::Left] = _cubeOrientation[Direction::Back];
+        _cubeOrientation[Direction::Back] = _cubeOrientation[Direction::Right];
+        _cubeOrientation[Direction::Right] = frontOrientation;
+    }
     return true;
 }
 
@@ -284,8 +296,11 @@ bool ServoPositionsPlanner::rotateCubeTwice()
         }
     }
 
-    std::swap(_cubeOrientation[Direction::Front], _cubeOrientation[Direction::Back]);
-    std::swap(_cubeOrientation[Direction::Left], _cubeOrientation[Direction::Right]);
+    if (_topServoPosition == TopServoPosition::Up)
+    {
+        std::swap(_cubeOrientation[Direction::Front], _cubeOrientation[Direction::Back]);
+        std::swap(_cubeOrientation[Direction::Left], _cubeOrientation[Direction::Right]);
+    }
     return true;
 }
 
