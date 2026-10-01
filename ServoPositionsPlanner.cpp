@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
+#include <unordered_map>
 
 ServoPositionsPlanner::ServoPositionsPlanner()
 {
@@ -23,7 +25,7 @@ void ServoPositionsPlanner::reset()
     _servoPositionsSequence.clear();
 }
 
-std::vector<std::variant<BottomServoPosition, TopServoPosition>> ServoPositionsPlanner::planServoPositionsSequence(
+ServoPositionsPlanner::ServoPositionsSequence ServoPositionsPlanner::planServoPositionsSequence(
     const std::vector<Cube::Move>& movesSequence)
 {
     reset();
@@ -36,65 +38,32 @@ std::vector<std::variant<BottomServoPosition, TopServoPosition>> ServoPositionsP
 
 void ServoPositionsPlanner::planServoPositionsForMove(Cube::Move move)
 {
-    switch (move)
-    {
-        case Cube::Move::U:
-            rotateFaceClockwise(Direction::Up);
-            break;
-        case Cube::Move::UPrime:
-            rotateFaceCounterClockwise(Direction::Up);
-            break;
-        case Cube::Move::DoubleU:
-            rotateFaceTwice(Direction::Up);
-            break;
-        case Cube::Move::D:
-            rotateFaceClockwise(Direction::Down);
-            break;
-        case Cube::Move::DPrime:
-            rotateFaceCounterClockwise(Direction::Down);
-            break;
-        case Cube::Move::DoubleD:
-            rotateFaceTwice(Direction::Down);
-            break;
-        case Cube::Move::F:
-            rotateFaceClockwise(Direction::Front);
-            break;
-        case Cube::Move::FPrime:
-            rotateFaceCounterClockwise(Direction::Front);
-            break;
-        case Cube::Move::DoubleF:
-            rotateFaceTwice(Direction::Front);
-            break;
-        case Cube::Move::B:
-            rotateFaceClockwise(Direction::Back);
-            break;
-        case Cube::Move::BPrime:
-            rotateFaceCounterClockwise(Direction::Back);
-            break;
-        case Cube::Move::DoubleB:
-            rotateFaceTwice(Direction::Back);
-            break;
-        case Cube::Move::R:
-            rotateFaceClockwise(Direction::Right);
-            break;
-        case Cube::Move::RPrime:
-            rotateFaceCounterClockwise(Direction::Right);
-            break;
-        case Cube::Move::DoubleR:
-            rotateFaceTwice(Direction::Right);
-            break;
-        case Cube::Move::L:
-            rotateFaceClockwise(Direction::Left);
-            break;
-        case Cube::Move::LPrime:
-            rotateFaceCounterClockwise(Direction::Left);
-            break;
-        case Cube::Move::DoubleL:
-            rotateFaceTwice(Direction::Left);
-            break;
-        default:
-            break;
-    }
+    _servoPositionsSequence.push_back({move, {}});
+
+    // clang-format off
+    static std::unordered_map<Cube::Move, std::function<void()>> moveFunctions = {
+        {Cube::Move::U,       [this]() { rotateFaceClockwise(Direction::Up); }},
+        {Cube::Move::UPrime,  [this]() { rotateFaceCounterClockwise(Direction::Up); }},
+        {Cube::Move::DoubleU, [this]() { rotateFaceTwice(Direction::Up); }},
+        {Cube::Move::D,       [this]() { rotateFaceClockwise(Direction::Down); }},
+        {Cube::Move::DPrime,  [this]() { rotateFaceCounterClockwise(Direction::Down); }},
+        {Cube::Move::DoubleD, [this]() { rotateFaceTwice(Direction::Down); }},
+        {Cube::Move::F,       [this]() { rotateFaceClockwise(Direction::Front); }},
+        {Cube::Move::FPrime,  [this]() { rotateFaceCounterClockwise(Direction::Front); }},
+        {Cube::Move::DoubleF, [this]() { rotateFaceTwice(Direction::Front); }},
+        {Cube::Move::B,       [this]() { rotateFaceClockwise(Direction::Back); }},
+        {Cube::Move::BPrime,  [this]() { rotateFaceCounterClockwise(Direction::Back); }},
+        {Cube::Move::DoubleB, [this]() { rotateFaceTwice(Direction::Back); }},
+        {Cube::Move::R,       [this]() { rotateFaceClockwise(Direction::Right); }},
+        {Cube::Move::RPrime,  [this]() { rotateFaceCounterClockwise(Direction::Right); }},
+        {Cube::Move::DoubleR, [this]() { rotateFaceTwice(Direction::Right); }},
+        {Cube::Move::L,       [this]() { rotateFaceClockwise(Direction::Left); }},
+        {Cube::Move::LPrime,  [this]() { rotateFaceCounterClockwise(Direction::Left); }},
+        {Cube::Move::DoubleL, [this]() { rotateFaceTwice(Direction::Left); }}
+    };
+    // clang-format on
+
+    moveFunctions[move]();
 }
 
 void ServoPositionsPlanner::rotateFaceClockwise(Direction face)
@@ -104,10 +73,10 @@ void ServoPositionsPlanner::rotateFaceClockwise(Direction face)
     {
         rotateCubeClockwise();
     }
-    _servoPositionsSequence.push_back(TopServoPosition::Down);
+    addServoPosToSequence(TopServoPosition::Down);
     _topServoPosition = TopServoPosition::Down;
     rotateCubeCounterClockwise();
-    _servoPositionsSequence.push_back(TopServoPosition::Up);
+    addServoPosToSequence(TopServoPosition::Up);
     _topServoPosition = TopServoPosition::Up;
 }
 
@@ -118,10 +87,10 @@ void ServoPositionsPlanner::rotateFaceCounterClockwise(Direction face)
     {
         rotateCubeCounterClockwise();
     }
-    _servoPositionsSequence.push_back(TopServoPosition::Down);
+    addServoPosToSequence(TopServoPosition::Down);
     _topServoPosition = TopServoPosition::Down;
     rotateCubeClockwise();
-    _servoPositionsSequence.push_back(TopServoPosition::Up);
+    addServoPosToSequence(TopServoPosition::Up);
     _topServoPosition = TopServoPosition::Up;
 }
 
@@ -132,10 +101,10 @@ void ServoPositionsPlanner::rotateFaceTwice(Direction face)
     {
         rotateCubeClockwise();
     }
-    _servoPositionsSequence.push_back(TopServoPosition::Down);
+    addServoPosToSequence(TopServoPosition::Down);
     _topServoPosition = TopServoPosition::Down;
     rotateCubeTwice();
-    _servoPositionsSequence.push_back(TopServoPosition::Up);
+    addServoPosToSequence(TopServoPosition::Up);
     _topServoPosition = TopServoPosition::Up;
 }
 
@@ -218,13 +187,13 @@ bool ServoPositionsPlanner::rotateCubeClockwise()
         case BottomServoPosition::Center:
         {
             _bottomServoPosition = BottomServoPosition::Clockwise;
-            _servoPositionsSequence.push_back(BottomServoPosition::Clockwise);
+            addServoPosToSequence(BottomServoPosition::Clockwise);
             break;
         }
         case BottomServoPosition::CounterClockwise:
         {
             _bottomServoPosition = BottomServoPosition::Center;
-            _servoPositionsSequence.push_back(BottomServoPosition::Center);
+            addServoPosToSequence(BottomServoPosition::Center);
             break;
         }
     }
@@ -251,13 +220,13 @@ bool ServoPositionsPlanner::rotateCubeCounterClockwise()
         case BottomServoPosition::Center:
         {
             _bottomServoPosition = BottomServoPosition::CounterClockwise;
-            _servoPositionsSequence.push_back(BottomServoPosition::CounterClockwise);
+            addServoPosToSequence(BottomServoPosition::CounterClockwise);
             break;
         }
         case BottomServoPosition::Clockwise:
         {
             _bottomServoPosition = BottomServoPosition::Center;
-            _servoPositionsSequence.push_back(BottomServoPosition::Center);
+            addServoPosToSequence(BottomServoPosition::Center);
             break;
         }
     }
@@ -285,13 +254,13 @@ bool ServoPositionsPlanner::rotateCubeTwice()
         case BottomServoPosition::Clockwise:
         {
             _bottomServoPosition = BottomServoPosition::CounterClockwise;
-            _servoPositionsSequence.push_back(BottomServoPosition::CounterClockwise);
+            addServoPosToSequence(BottomServoPosition::CounterClockwise);
             break;
         }
         case BottomServoPosition::CounterClockwise:
         {
             _bottomServoPosition = BottomServoPosition::Clockwise;
-            _servoPositionsSequence.push_back(BottomServoPosition::Clockwise);
+            addServoPosToSequence(BottomServoPosition::Clockwise);
             break;
         }
     }
@@ -312,6 +281,6 @@ void ServoPositionsPlanner::rotateCubeVertically()
     _cubeOrientation[Direction::Back] = _cubeOrientation[Direction::Up];
     _cubeOrientation[Direction::Up] = frontOrientation;
 
-    _servoPositionsSequence.push_back(TopServoPosition::Lift);
-    _servoPositionsSequence.push_back(TopServoPosition::Up);
+    addServoPosToSequence(TopServoPosition::Lift);
+    addServoPosToSequence(TopServoPosition::Up);
 }

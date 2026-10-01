@@ -3,6 +3,7 @@
 #include "ImagesManager.h"
 #include "ImagesReader.h"
 #include "ImagesStreamReceiver.h"
+#include "ServoControllerTcp.h"
 
 #include <iostream>
 

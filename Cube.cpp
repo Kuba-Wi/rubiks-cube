@@ -1133,7 +1133,7 @@ std::pair<uint8_t, std::vector<Cube::Move>> Cube::searchStatesToGetToSolvedState
     return {minResult, bestMovesSequence};
 }
 
-std::string Cube::moveToString(Move move) const
+std::string Cube::moveToString(Move move)
 {
     switch (move)
     {

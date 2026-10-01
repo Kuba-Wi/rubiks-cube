@@ -29,8 +29,10 @@ enum class TopServoPosition
  */
 class ServoPositionsPlanner
 {
-    // Represents the face of the cube (associated with a color) or the direction the face is currently facing based on the
-    // cube's orientation.
+    /*!
+     * Represents the face of the cube (associated with a color) or the direction the face is currently facing based on the
+     * cube's orientation.
+     */
     enum class Direction
     {
         Up,
@@ -42,8 +44,11 @@ class ServoPositionsPlanner
     };
 
 public:
+    using ServoPosition = std::variant<BottomServoPosition, TopServoPosition>;
+    using ServoPositionsSequence = std::vector<std::pair<Cube::Move, std::vector<ServoPosition>>>;
+
     ServoPositionsPlanner();
-    std::vector<std::variant<BottomServoPosition, TopServoPosition>> planServoPositionsSequence(
+    ServoPositionsSequence planServoPositionsSequence(
         const std::vector<Cube::Move>& movesSequence);
 
     static BottomServoPosition defaultBottomServoPosition()
@@ -73,6 +78,12 @@ private:
     // rotates the cube vertically, so that front face becomes the up face and so on
     void rotateCubeVertically();
 
+    template <typename ServoPos>
+    void addServoPosToSequence(ServoPos servoPos)
+    {
+        _servoPositionsSequence.back().second.push_back(servoPos);
+    }
+
     /*!
      * Maps cube faces to their current orientation based on the cube's position.
      * For example, if the cube is rotated such that the Up face is now facing the front, the mapping would be: Up -> Front.
@@ -88,5 +99,5 @@ private:
      * Sequence of servo positions updated when each rotation command is executed.
      * Each element in the vector represents a specific position for either the bottom or top servo.
      */
-    std::vector<std::variant<BottomServoPosition, TopServoPosition>> _servoPositionsSequence;
+    ServoPositionsSequence _servoPositionsSequence;
 };

@@ -1,7 +1,4 @@
-#include "ServoController.h"
-
-#include "ServoPositionsPlanner.h"
-#include "TcpSender.h"
+#include "ServoControllerTcp.h"
 
 #include <iostream>
 #include <thread>
@@ -19,24 +16,17 @@ enum ServoIndex : uint8_t
 
 std::vector<uint8_t> translateServoPositionToCommand(BottomServoPosition servoPosition)
 {
-    enum BottomServoAngle : uint8_t
-    {
-        ClockwiseAngle = 0,
-        CenterAngle = 90,
-        CounterClockwiseAngle = 180,
-    };
-
     std::vector<uint8_t> command;
     switch (servoPosition)
     {
         case BottomServoPosition::CounterClockwise:
-            command = {BottomServo, CounterClockwiseAngle};
+            command = {BottomServo, ServoControllerTcp::CounterClockwiseAngle};
             break;
         case BottomServoPosition::Center:
-            command = {BottomServo, CenterAngle};
+            command = {BottomServo, ServoControllerTcp::CenterAngle};
             break;
         case BottomServoPosition::Clockwise:
-            command = {BottomServo, ClockwiseAngle};
+            command = {BottomServo, ServoControllerTcp::ClockwiseAngle};
             break;
     }
     return command;
@@ -44,87 +34,132 @@ std::vector<uint8_t> translateServoPositionToCommand(BottomServoPosition servoPo
 
 std::vector<uint8_t> translateServoPositionToCommand(TopServoPosition servoPosition)
 {
-    enum TopServoAngle : uint8_t
-    {
-        LiftAngle = 0,
-        UpAngle = 58,
-        DownAngle = 88
-    };
-
     std::vector<uint8_t> command;
     switch (servoPosition)
     {
         case TopServoPosition::Lift:
-            command = {TopServo, LiftAngle};
+            command = {TopServo, ServoControllerTcp::LiftAngle};
             break;
         case TopServoPosition::Up:
-            command = {TopServo, UpAngle};
+            command = {TopServo, ServoControllerTcp::UpAngle};
             break;
         case TopServoPosition::Down:
-            command = {TopServo, DownAngle};
+            command = {TopServo, ServoControllerTcp::DownAngle};
             break;
     }
     return command;
 }
 } // namespace
 
-void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
+bool ServoControllerTcp::initServos()
 {
-    TcpSender tcpSender;
-    if (!tcpSender.connectToServer())
+    if (!_tcpSender.connectToServer())
     {
         std::cerr << "Failed to connect to the server." << std::endl;
+        return false;
+    }
+
+    _currentBottomServoPosition = ServoPositionsPlanner::defaultBottomServoPosition();
+    _tcpSender.sendData(translateServoPositionToCommand(_currentBottomServoPosition));
+    std::this_thread::sleep_for(defaultSleepTime);
+
+    _currentTopServoPosition = ServoPositionsPlanner::defaultTopServoPosition();
+    _tcpSender.sendData(translateServoPositionToCommand(_currentTopServoPosition));
+    std::this_thread::sleep_for(defaultSleepTime);
+
+    return true;
+}
+
+void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
+{
+    if (!initServos())
+    {
         return;
     }
 
-    
     ServoPositionsPlanner servoPositionsPlanner;
     const auto servoPositionsSequence = servoPositionsPlanner.planServoPositionsSequence(moves);
-    
-    BottomServoPosition currentBottomServoPosition = ServoPositionsPlanner::defaultBottomServoPosition();
-    TopServoPosition currentTopServoPosition = ServoPositionsPlanner::defaultTopServoPosition();
-    std::chrono::milliseconds sleepDuration = defaultSleepTime;
-
-    tcpSender.sendData(translateServoPositionToCommand(currentBottomServoPosition));
-    std::this_thread::sleep_for(defaultSleepTime);
-    tcpSender.sendData(translateServoPositionToCommand(currentTopServoPosition));
-    std::this_thread::sleep_for(defaultSleepTime);
 
     std::cout << "Put cube in the initial position and press Enter to start solving..." << std::endl;
     std::cin.get();
 
-    for (const auto& servoPosition : servoPositionsSequence)
+    _pauseThread = std::thread(&ServoControllerTcp::pauseThreadFunction, this);
+
+    for (const auto& [move, servoPositions] : servoPositionsSequence)
     {
-        if (std::holds_alternative<BottomServoPosition>(servoPosition))
+        std::cout << "Executing move: " << Cube::moveToString(move) << std::endl;
+
+        for (const auto& servoPosition : servoPositions)
         {
-            const auto bottomServoPosition = std::get<BottomServoPosition>(servoPosition);
-            if (bottomServoPosition != currentBottomServoPosition)
+            std::unique_lock<std::mutex> lock(_pauseMutex);
+            _pauseCondition.wait(lock,
+                                 [this]
+                                 {
+                                     return !_paused;
+                                 });
+            lock.unlock();
+
+            if (std::holds_alternative<BottomServoPosition>(servoPosition))
             {
-                if (bottomServoPosition == BottomServoPosition::Center ||
-                    currentBottomServoPosition == BottomServoPosition::Center)
-                {
-                    sleepDuration = defaultSleepTime;
-                }
-                else
-                {
-                    // If the bottom servo is moving from clockwise to counter-clockwise or vice versa, we need to wait
-                    // longer for the servo to complete the rotation.
-                    sleepDuration = longSleepTime;
-                }
-                currentBottomServoPosition = bottomServoPosition;
-                tcpSender.sendData(translateServoPositionToCommand(bottomServoPosition));
-                std::this_thread::sleep_for(sleepDuration);
+                const auto bottomServoPosition = std::get<BottomServoPosition>(servoPosition);
+                setBottomServoPosition(bottomServoPosition);
+            }
+            else if (std::holds_alternative<TopServoPosition>(servoPosition))
+            {
+                const auto topServoPosition = std::get<TopServoPosition>(servoPosition);
+                setTopServoPosition(topServoPosition);
             }
         }
-        else if (std::holds_alternative<TopServoPosition>(servoPosition))
+    }
+
+    _finishPauseThread = true;
+    _pauseThread.join();
+}
+
+void ServoControllerTcp::setBottomServoPosition(BottomServoPosition bottomServoPosition)
+{
+    if (bottomServoPosition != _currentBottomServoPosition)
+    {
+        _currentBottomServoPosition = bottomServoPosition;
+        _tcpSender.sendData(translateServoPositionToCommand(bottomServoPosition));
+        if (bottomServoPosition == BottomServoPosition::Center || _currentBottomServoPosition == BottomServoPosition::Center)
         {
-            const auto topServoPosition = std::get<TopServoPosition>(servoPosition);
-            if (topServoPosition != currentTopServoPosition)
-            {
-                currentTopServoPosition = topServoPosition;
-                tcpSender.sendData(translateServoPositionToCommand(topServoPosition));
-                std::this_thread::sleep_for(defaultSleepTime);
-            }
+            std::this_thread::sleep_for(defaultSleepTime);
         }
+        else
+        {
+            // If the bottom servo is moving from clockwise to counter-clockwise or vice versa, we need to wait
+            // longer for the servo to complete the rotation.
+            std::this_thread::sleep_for(longSleepTime);
+        }
+    }
+}
+void ServoControllerTcp::setTopServoPosition(TopServoPosition topServoPosition)
+{
+    if (topServoPosition != _currentTopServoPosition)
+    {
+        _currentTopServoPosition = topServoPosition;
+        _tcpSender.sendData(translateServoPositionToCommand(topServoPosition));
+        std::this_thread::sleep_for(defaultSleepTime);
+    }
+}
+
+void ServoControllerTcp::pauseThreadFunction()
+{
+    std::cout << "Press Enter to pause/resume the servo control..." << std::endl;
+    while (!_finishPauseThread)
+    {
+        std::cin.get();
+        std::lock_guard<std::mutex> lock(_pauseMutex);
+        _paused = !_paused;
+        if (_paused)
+        {
+            std::cout << "Servo control paused. Press Enter to resume..." << std::endl;
+        }
+        else
+        {
+            std::cout << "Servo control resumed." << std::endl;
+        }
+        _pauseCondition.notify_all();
     }
 }

@@ -74,6 +74,7 @@ public:
     Cube(const Cube& other) = delete;
     Cube& operator=(const Cube& other) = delete;
 
+    static std::string moveToString(Move move);
     void resetCubeToSolved();
 
     // Solves the cube and returns a vector of moves that solves it.
@@ -247,8 +248,6 @@ private:
                                                                          uint8_t depth,
                                                                          uint8_t currentLimit,
                                                                          std::vector<Move> movesSequence) const;
-
-    std::string moveToString(Move move) const;
 
     // Sets the cube edges permutation and orientation based on the given colors data.
     bool setEdgesFromColors(const std::map<StickerColor, CubeColorsData::FaceColors>& faceColorsMap);
