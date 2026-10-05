@@ -1,6 +1,7 @@
 #include "ServoControllerTcp.h"
 
 #include <iostream>
+#include <poll.h>
 #include <thread>
 
 namespace
@@ -51,13 +52,20 @@ std::vector<uint8_t> translateServoPositionToCommand(TopServoPosition servoPosit
 }
 } // namespace
 
+ServoControllerTcp::ServoControllerTcp(const std::string& serverIp, uint16_t port)
+    : _tcpSender(serverIp, port)
+{
+}
+
 bool ServoControllerTcp::initServos()
 {
+    std::cout << "Connecting to the server at " << _tcpSender.serverIp << ":" << int(_tcpSender.port) << std::endl;
     if (!_tcpSender.connectToServer())
     {
         std::cerr << "Failed to connect to the server." << std::endl;
         return false;
     }
+    std::cout << "Connected." << std::endl;
 
     _currentBottomServoPosition = ServoPositionsPlanner::defaultBottomServoPosition();
     _tcpSender.sendData(translateServoPositionToCommand(_currentBottomServoPosition));
@@ -78,7 +86,7 @@ void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
     }
 
     ServoPositionsPlanner servoPositionsPlanner;
-    const auto servoPositionsSequence = servoPositionsPlanner.planServoPositionsSequence(moves);
+    auto servoPositionsSequence = servoPositionsPlanner.planServoPositionsSequence(moves);
 
     std::cout << "Put cube in the initial position and press Enter to start solving..." << std::endl;
     std::cin.get();
@@ -147,9 +155,23 @@ void ServoControllerTcp::setTopServoPosition(TopServoPosition topServoPosition)
 void ServoControllerTcp::pauseThreadFunction()
 {
     std::cout << "Press Enter to pause/resume the servo control..." << std::endl;
+    pollfd pfd{};
+    pfd.fd = STDIN_FILENO;
+    pfd.events = POLLIN;
+
     while (!_finishPauseThread)
     {
-        std::cin.get();
+        int result = poll(&pfd, 1, 100);
+        if (result == 0)
+        {
+            continue; // Timeout, no input
+        }
+        else if (result > 0 && (pfd.revents & POLLIN))
+        {
+            char c;
+            [[maybe_unused]] ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
+        }
+
         std::lock_guard<std::mutex> lock(_pauseMutex);
         _paused = !_paused;
         if (_paused)

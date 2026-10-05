@@ -7,14 +7,15 @@
 class TcpSender
 {
 public:
-    TcpSender(const std::string& serverIp = "192.168.5.9", uint16_t port = 5000);
+    TcpSender(const std::string& ip, uint16_t portNum);
     ~TcpSender();
 
     bool connectToServer();
     void sendData(const std::vector<uint8_t>& data);
 
+    const std::string serverIp;
+    const uint16_t port;
+
 private:
-    std::string _serverIp;
-    uint16_t _port;
     int _sock;
 };

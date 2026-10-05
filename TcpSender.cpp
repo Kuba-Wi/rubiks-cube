@@ -9,9 +9,9 @@
 #include <thread>
 #include <unistd.h>
 
-TcpSender::TcpSender(const std::string& serverIp, uint16_t port) :
-    _serverIp(serverIp),
-    _port(port),
+TcpSender::TcpSender(const std::string& ip, uint16_t portNum) :
+    serverIp(ip),
+    port(portNum),
     _sock(-1)
 {
 }
@@ -36,9 +36,9 @@ bool TcpSender::connectToServer()
 
     sockaddr_in serverAddr{};
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(_port);
+    serverAddr.sin_port = htons(port);
 
-    if (inet_pton(AF_INET, _serverIp.c_str(), &serverAddr.sin_addr) <= 0)
+    if (inet_pton(AF_INET, serverIp.c_str(), &serverAddr.sin_addr) <= 0)
     {
         std::cerr << "Wrong IP\n";
         close(_sock);
@@ -54,8 +54,6 @@ bool TcpSender::connectToServer()
         close(_sock);
         return false;
     }
-
-    std::cout << "Connected.\n";
     return true;
 }
 

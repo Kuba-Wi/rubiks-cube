@@ -26,6 +26,7 @@ public:
         DownAngle = 88
     };
 
+    ServoControllerTcp(const std::string& serverIp = "192.168.7.2", uint16_t port = 5000);
     ~ServoControllerTcp() override = default;
     void controlServos(const std::vector<Cube::Move>& moves) override;
 

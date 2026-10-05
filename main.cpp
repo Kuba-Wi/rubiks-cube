@@ -9,13 +9,23 @@
 
 int main(int argc, char* argv[])
 {
+    std::string imagesDirPath;
+    std::string serverIp;
+    if (argc > 1)
+    {
+        imagesDirPath = argv[1];
+    }
+    if (argc > 2)
+    {
+        serverIp = argv[2];
+    }
+
     Cube cube;
     CubeColorsData cubeColorsData;
 
-    if (argc > 1)
+    if (!imagesDirPath.empty())
     {
         ImagesManager imagesManager;
-        std::string imagesDirPath = argv[1];
         const bool cubeDataLoaded = imagesManager.loadCubeColorsData(imagesDirPath);
         if (!cubeDataLoaded)
         {
@@ -40,7 +50,16 @@ int main(int argc, char* argv[])
     std::cout << "\nInitial cube state:\n";
     cube.printCube();
     std::cout << "\nSolving the cube...\n";
-    CubeSolver cubeSolver(std::make_unique<ServoControllerTcp>());
+    std::unique_ptr<ServoController> servoController;
+    if (!serverIp.empty())
+    {
+        servoController = std::make_unique<ServoControllerTcp>(serverIp);
+    }
+    else
+    {
+        servoController = std::make_unique<ServoControllerTcp>();
+    }
+    CubeSolver cubeSolver(std::move(servoController));
     cubeSolver.solveCube(cube);
     std::cout << "\nCube state after solving:\n";
     cube.printCube();

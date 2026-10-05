@@ -1,3 +1,5 @@
+from time import sleep
+
 from Servo import ServoController
 from DataReceiver import DataReceiver
 
@@ -14,13 +16,15 @@ class Printer:
         print(f"Received command: Servo {servoIndex}, Angle {angle}°")
 
 if __name__ == "__main__":
-    try:
-        # printer = Printer()
-        servoController = ServoController()
-        dataReceiver = DataReceiver(servoController)
-        dataReceiver.start()
+    while True:
+        try:
+            # printer = Printer()
+            servoController = ServoController()
+            dataReceiver = DataReceiver(servoController)
+            dataReceiver.start()
 
-    except KeyboardInterrupt:
-        print("\nInterrupted.")
-    finally:
-        servoController.disable()
+        except KeyboardInterrupt:
+            print("\nInterrupted.")
+        finally:
+            servoController.disable()
+        sleep(1)
