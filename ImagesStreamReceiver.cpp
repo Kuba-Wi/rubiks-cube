@@ -2,8 +2,8 @@
 
 #include "cubeHelpers.h"
 #include "ImagesReader.h"
+#include "Logger.h"
 
-#include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>
 
@@ -23,11 +23,11 @@ void ImagesStreamReceiver::receiveImageStream()
 
     if (!camera.isOpened())
     {
-        std::cerr << "Fail. Couldn't open a stream\n";
+        LOG_ERROR("Couldn't open a stream");
         return;
     }
 
-    std::cout << "Stream open.\n";
+    LOG_INFO("Stream opened.");
 
     cv::Mat frame;
     _streaming = true;
@@ -37,7 +37,7 @@ void ImagesStreamReceiver::receiveImageStream()
 
         if (frame.empty())
         {
-            std::cerr << "Error: Empty frame received.\n";
+            LOG_ERROR("Empty frame received.");
             break;
         }
 

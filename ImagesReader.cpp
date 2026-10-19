@@ -1,5 +1,7 @@
 #include "ImagesReader.h"
 
+#include "Logger.h"
+
 ImagesReader::ImagesReader(std::unique_ptr<ImagesManager>&& imgManager,
                            std::unique_ptr<ImagesStreamReceiver>&& imgStreamReceiver) :
     _imgManager(std::move(imgManager)),
@@ -26,7 +28,7 @@ void ImagesReader::onKeyClicked(int key)
 
     if (key == 'q')
     {
-        std::cout << "Colors data set for color " << toString(_currentColor) << ":\n";
+        LOG_INFO("Colors data set for color ", toString(_currentColor), ".");
         _imgManager->printCubeFaceColors(_currentColor);
         _imgStreamReceiver->stopStream();
         return;
@@ -35,19 +37,19 @@ void ImagesReader::onKeyClicked(int key)
     {
         if (it->second == _currentColor)
         {
-            std::cout << "Color " << toString(_currentColor) << " already selected. Ignoring.\n";
+            LOG_INFO("Color ", toString(_currentColor), " already selected. Ignoring.");
             return;
         }
-        std::cout << "Colors data set for color " << toString(_currentColor) << ":\n";
+        LOG_INFO("Colors data set for color ", toString(_currentColor), ".");
         _imgManager->printCubeFaceColors(_currentColor);
         _currentColor = it->second;
-        std::cout << "Reading frame with color " << toString(_currentColor) << ".\n";
+        LOG_INFO("Reading frame with color ", toString(_currentColor), ".");
     }
 }
 
 void ImagesReader::readImages()
 {
-    std::cout << "Reading frame with color " << toString(_currentColor) << ".\n";
+    LOG_INFO("Reading frame with color ", toString(_currentColor), ".");
     _imgStreamReceiver->receiveImageStream();
 }
 

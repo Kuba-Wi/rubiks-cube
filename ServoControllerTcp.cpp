@@ -1,5 +1,7 @@
 #include "ServoControllerTcp.h"
 
+#include "Logger.h"
+
 #include <iostream>
 #include <poll.h>
 #include <thread>
@@ -59,13 +61,13 @@ ServoControllerTcp::ServoControllerTcp(const std::string& serverIp, uint16_t por
 
 bool ServoControllerTcp::initServos()
 {
-    std::cout << "Connecting to the server at " << _tcpSender.serverIp << ":" << int(_tcpSender.port) << std::endl;
+    LOG_INFO("Connecting to the server at ", _tcpSender.serverIp, ":", int(_tcpSender.port), ".");
     if (!_tcpSender.connectToServer())
     {
-        std::cerr << "Failed to connect to the server." << std::endl;
+        LOG_INFO("Failed to connect to the server.");
         return false;
     }
-    std::cout << "Connected." << std::endl;
+    LOG_INFO("Connected.");
 
     _currentBottomServoPosition = ServoPositionsPlanner::defaultBottomServoPosition();
     _tcpSender.sendData(translateServoPositionToCommand(_currentBottomServoPosition));
@@ -88,14 +90,14 @@ void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
     ServoPositionsPlanner servoPositionsPlanner;
     auto servoPositionsSequence = servoPositionsPlanner.planServoPositionsSequence(moves);
 
-    std::cout << "Put cube in the initial position and press Enter to start solving..." << std::endl;
+    LOG_INFO("Put cube in the initial position and press Enter to start solving...");
     std::cin.get();
 
     _pauseThread = std::thread(&ServoControllerTcp::pauseThreadFunction, this);
 
     for (const auto& [move, servoPositions] : servoPositionsSequence)
     {
-        std::cout << "Executing move: " << Cube::moveToString(move) << std::endl;
+        LOG_INFO("Executing move: ", Cube::moveToString(move), ".");
 
         for (const auto& servoPosition : servoPositions)
         {
@@ -154,7 +156,7 @@ void ServoControllerTcp::setTopServoPosition(TopServoPosition topServoPosition)
 
 void ServoControllerTcp::pauseThreadFunction()
 {
-    std::cout << "Press Enter to pause/resume the servo control..." << std::endl;
+    LOG_INFO("Press Enter to pause/resume the servo control...");
     pollfd pfd{};
     pfd.fd = STDIN_FILENO;
     pfd.events = POLLIN;
@@ -176,11 +178,11 @@ void ServoControllerTcp::pauseThreadFunction()
         _paused = !_paused;
         if (_paused)
         {
-            std::cout << "Servo control paused. Press Enter to resume..." << std::endl;
+            LOG_INFO("Servo control paused. Press Enter to resume...");
         }
         else
         {
-            std::cout << "Servo control resumed." << std::endl;
+            LOG_INFO("Servo control resumed.");
         }
         _pauseCondition.notify_all();
     }

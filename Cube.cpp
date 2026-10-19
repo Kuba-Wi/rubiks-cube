@@ -1,7 +1,8 @@
 #include "Cube.h"
 
+#include "Logger.h"
+
 #include <algorithm>
-#include <iostream>
 #include <numeric>
 #include <queue>
 #include <set>
@@ -117,13 +118,13 @@ std::vector<Cube::Move> Cube::solveCube()
     for (Move move : movesToG1)
     {
         _moveFunctions[move]();
-        std::cout << "Move to G1: " << moveToString(move) << std::endl;
+        LOG_INFO("Move to G1: ", moveToString(move));
     }
     std::vector<Move> movesToSolved = findMovesFromG1ToSolvedState();
 
     for (Move move : movesToSolved)
     {
-        std::cout << "Move: " << moveToString(move) << std::endl;
+        LOG_INFO("Move: ", moveToString(move));
         _moveFunctions[move]();
     }
 
@@ -1184,7 +1185,7 @@ bool Cube::setCubeStateFromColorsData(const CubeColorsData& cubeColorsData)
     constexpr size_t facesCount = 6;
     if (faceColorsMap.size() != facesCount)
     {
-        std::cerr << "Invalid cube colors data. Expected 6 faces, but got " << faceColorsMap.size() << " faces." << std::endl;
+        LOG_ERROR("Invalid cube colors data. Expected 6 faces, but got ", faceColorsMap.size(), " faces.");
         return false;
     }
 
@@ -1195,7 +1196,7 @@ bool Cube::setCubeStateFromColorsData(const CubeColorsData& cubeColorsData)
                         return pair.first == StickerColor::Unknown;
                     }))
     {
-        std::cerr << "Invalid cube colors data. Unknown face color found." << std::endl;
+        LOG_ERROR("Invalid cube colors data. Unknown face color found.");
         return false;
     }
 
@@ -1257,8 +1258,11 @@ bool Cube::setEdgesFromColors(const std::map<StickerColor, CubeColorsData::FaceC
         }
         else
         {
-            std::cerr << "Invalid cube colors data. Could not find edge with colors: " << toString(colorsSolved[0]) << ", "
-                      << toString(colorsSolved[1]) << "." << std::endl;
+            LOG_ERROR("Invalid cube colors data. Could not find edge with colors: ",
+                      toString(colorsSolved[0]),
+                      ", ",
+                      toString(colorsSolved[1]),
+                      ".");
             return false;
         }
     }
@@ -1276,7 +1280,7 @@ bool Cube::setEdgesFromColors(const std::map<StickerColor, CubeColorsData::FaceC
     const uint8_t edgeOrientationsSum = std::accumulate(_edgeOrient.begin(), _edgeOrient.end(), uint8_t{0});
     if (edgeOrientationsSum % 2 != 0)
     {
-        std::cerr << "Invalid cube colors data. Edges orientation not possible." << std::endl;
+        LOG_ERROR("Invalid cube colors data. Edges orientation not possible.");
         return false;
     }
 
@@ -1347,8 +1351,13 @@ bool Cube::setCornersFromColors(const std::map<StickerColor, CubeColorsData::Fac
         }
         else
         {
-            std::cerr << "Invalid cube colors data. Could not find corner with colors: " << toString(colorsSolved[0]) << ", "
-                      << toString(colorsSolved[1]) << ", " << toString(colorsSolved[2]) << "." << std::endl;
+            LOG_ERROR("Invalid cube colors data. Could not find corner with colors: ",
+                      toString(colorsSolved[0]),
+                      ", ",
+                      toString(colorsSolved[1]),
+                      ", ",
+                      toString(colorsSolved[2]),
+                      ".");
             return false;
         }
     }
@@ -1356,7 +1365,7 @@ bool Cube::setCornersFromColors(const std::map<StickerColor, CubeColorsData::Fac
     const uint8_t orientationsSum = std::accumulate(_cornerOrient.begin(), _cornerOrient.end(), uint8_t{0});
     if (orientationsSum % 3 != 0)
     {
-        std::cerr << "Invalid cube colors data. Corners orientation not possible." << std::endl;
+        LOG_ERROR("Invalid cube colors data. Corners orientation not possible.");
         return false;
     }
 
@@ -1365,25 +1374,35 @@ bool Cube::setCornersFromColors(const std::map<StickerColor, CubeColorsData::Fac
 
 void Cube::printCube() const
 {
-    std::cout << "Corner Permutation: ";
+    LOG_INFO("Corner Permutation: ");
+    std::string perm;
     for (const auto& corner : _cornerPerm)
     {
-        std::cout << static_cast<int>(corner) << " ";
+        perm += std::to_string(static_cast<int>(corner)) + " ";
     }
-    std::cout << "\nCorner Orientation: ";
+    LOG_INFO(perm);
+
+    LOG_INFO("Corner Orientation: ");
+    std::string orientStr;
     for (const auto& orient : _cornerOrient)
     {
-        std::cout << static_cast<int>(orient) << " ";
+        orientStr += std::to_string(static_cast<int>(orient)) + " ";
     }
-    std::cout << "\nEdge Permutation: ";
+    LOG_INFO(orientStr);
+
+    LOG_INFO("Edge Permutation: ");
+    std::string edgePermStr;
     for (const auto& edge : _edgePerm)
     {
-        std::cout << static_cast<int>(edge) << " ";
+        edgePermStr += std::to_string(static_cast<int>(edge)) + " ";
     }
-    std::cout << "\nEdge Orientation: ";
+    LOG_INFO(edgePermStr);
+
+    LOG_INFO("Edge Orientation: ");
+    std::string edgeOrientStr;
     for (const auto& orient : _edgeOrient)
     {
-        std::cout << static_cast<int>(orient) << " ";
+        edgeOrientStr += std::to_string(static_cast<int>(orient)) + " ";
     }
-    std::cout << std::endl;
+    LOG_INFO(edgeOrientStr, "\n");
 }

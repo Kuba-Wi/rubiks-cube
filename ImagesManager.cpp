@@ -1,5 +1,7 @@
 #include "ImagesManager.h"
 
+#include "Logger.h"
+
 #include <filesystem>
 #include <opencv2/opencv.hpp>
 #include <vector>
@@ -51,7 +53,7 @@ bool ImagesManager::loadCubeColorsData(const std::string& imagesDirPath)
     }
     catch (const fs::filesystem_error& e)
     {
-        std::cerr << "Filesystem error: " << e.what() << "\n";
+        LOG_ERROR(e.what(), ".");
         return false;
     }
     return true;
@@ -59,17 +61,17 @@ bool ImagesManager::loadCubeColorsData(const std::string& imagesDirPath)
 
 bool ImagesManager::loadCubeColorsDataForImage(const std::string& imagePath)
 {
-    std::cout << "Loading colors for image " << imagePath << ".\n";
+    LOG_INFO("Loading colors for image ", imagePath, ".");
 
     cv::Mat image = cv::imread(imagePath);
     if (image.empty())
     {
-        std::cerr << "Failed to load image " << imagePath << ".\n";
+        LOG_ERROR("Failed to load image ", imagePath, ".");
         return false;
     }
     if (!loadCubeColorsDataForImage(image))
     {
-        std::cerr << "Failed to load colors from image " << imagePath << ".\n";
+        LOG_ERROR("Failed to load colors from image ", imagePath, ".");
         return false;
     }
 
@@ -114,13 +116,15 @@ bool ImagesManager::loadCubeColorsDataForImage(const cv::Mat& image, StickerColo
 
     if (_cubeColorsData.addFaceColors(colors))
     {
+        std::string colorsStr;
         for (const auto& rowColors : colors)
         {
+            colorsStr.clear();
             for (size_t col = 0; col < rowColors.size(); ++col)
             {
-                std::cout << toString(rowColors[col]) << (col + 1 < rowColors.size() ? " | " : "");
+                colorsStr += toString(rowColors[col]) + (col + 1 < rowColors.size() ? " | " : "");
             }
-            std::cout << "\n";
+            LOG_INFO(colorsStr);
         }
         return true;
     }
@@ -134,7 +138,6 @@ void ImagesManager::printCubeColorsData() const
     for (const auto& [centerColor, faceColors] : faceColorsMap)
     {
         printCubeFaceColors(centerColor);
-        std::cout << "\n";
     }
 }
 
@@ -145,18 +148,20 @@ void ImagesManager::printCubeFaceColors(StickerColor centerColor) const
     if (it != faceColorsMap.end())
     {
         const auto& faceColors = it->second;
+        std::string colorsStr;
         for (const auto& rowColors : faceColors)
         {
+            colorsStr.clear();
             for (size_t col = 0; col < rowColors.size(); ++col)
             {
-                std::cout << toString(rowColors[col]) << (col + 1 < rowColors.size() ? " | " : "");
+                colorsStr += toString(rowColors[col]) + (col + 1 < rowColors.size() ? " | " : "");
             }
-            std::cout << "\n";
+            LOG_INFO(colorsStr);
         }
     }
     else
     {
-        std::cout << "No face found with center color " << toString(centerColor) << ".\n";
+        LOG_INFO("No face found with center color ", toString(centerColor), ".");
     }
 }
 
@@ -336,7 +341,7 @@ std::optional<cv::Rect> findFaceRect(const cv::Mat& image)
     constexpr size_t minStickersCount = 4;
     if (stickers.size() < minStickersCount)
     {
-        // std::cerr << "findFaceRect: not enough sticker candidates\n";
+        LOG_DEBUG("findFaceRect: not enough sticker candidates");
         return std::nullopt;
     }
 
@@ -363,7 +368,7 @@ std::optional<cv::Rect> findFaceRect(const cv::Mat& image)
 
     if (accepted.size() < minStickersCount)
     {
-        // std::cerr << "findFaceRect: not enough accepted stickers\n";
+        LOG_DEBUG("findFaceRect: not enough accepted stickers");
         return std::nullopt;
     }
 
@@ -380,7 +385,7 @@ std::optional<cv::Rect> findFaceRect(const cv::Mat& image)
     const std::vector<double> colCenters = cluster1D(xs, 0.5 * medianSize);
     const std::vector<double> rowCenters = cluster1D(ys, 0.5 * medianSize);
 
-    // Fallback: nietypowy układ klastrów - wspólny obrys naklejek
+    // Fallback: unusual cluster arrangement - common outline of stickers
     if (colCenters.size() > 3 || rowCenters.size() > 3)
     {
         cv::Rect face = accepted[0];
@@ -389,8 +394,7 @@ std::optional<cv::Rect> findFaceRect(const cv::Mat& image)
             face |= r;
         }
 
-        // std::cerr << "findFaceRect: too many clusters (" << colCenters.size() << "x" << rowCenters.size()
-        //           << ")\n";
+        LOG_DEBUG("findFaceRect: too many clusters (", colCenters.size(), "x", rowCenters.size(), ").");
 
         return std::nullopt; // to avoid detecting wrong colors on a non-cube object
     }

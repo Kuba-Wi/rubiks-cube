@@ -3,9 +3,8 @@
 #include "ImagesManager.h"
 #include "ImagesReader.h"
 #include "ImagesStreamReceiver.h"
+#include "Logger.h"
 #include "ServoControllerTcp.h"
-
-#include <iostream>
 
 int main(int argc, char* argv[])
 {
@@ -43,13 +42,13 @@ int main(int argc, char* argv[])
 
     if (!cube.setCubeStateFromColorsData(cubeColorsData))
     {
-        std::cerr << "Failed to set cube state from colors data." << std::endl;
+        LOG_INFO("Failed to set cube state from colors data.");
         return 1;
     }
 
-    std::cout << "\nInitial cube state:\n";
+    LOG_INFO("Initial cube state:");
     cube.printCube();
-    std::cout << "\nSolving the cube...\n";
+    LOG_INFO("Solving the cube...");
     std::unique_ptr<ServoController> servoController;
     if (!serverIp.empty())
     {
@@ -61,7 +60,7 @@ int main(int argc, char* argv[])
     }
     CubeSolver cubeSolver(std::move(servoController));
     cubeSolver.solveCube(cube);
-    std::cout << "\nCube state after solving:\n";
+    LOG_INFO("Cube state after solving:");
     cube.printCube();
 
     return 0;

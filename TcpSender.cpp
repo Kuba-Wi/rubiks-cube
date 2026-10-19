@@ -1,10 +1,9 @@
 #include "TcpSender.h"
-
+#include "Logger.h"
 #include <arpa/inet.h>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
@@ -40,7 +39,7 @@ bool TcpSender::connectToServer()
 
     if (inet_pton(AF_INET, serverIp.c_str(), &serverAddr.sin_addr) <= 0)
     {
-        std::cerr << "Wrong IP\n";
+        LOG_ERROR("Wrong IP");
         close(_sock);
         return false;
     }
@@ -61,7 +60,7 @@ void TcpSender::sendData(const std::vector<uint8_t>& data)
 {
     if (_sock < 0)
     {
-        std::cerr << "Socket is not connected\n";
+        LOG_ERROR("Socket is not connected");
         return;
     }
 
