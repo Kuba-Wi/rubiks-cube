@@ -29,16 +29,15 @@ public:
     ServoControllerTcp(const std::string& serverIp = "192.168.7.2", uint16_t port = 5000);
     ~ServoControllerTcp() override = default;
     void controlServos(const std::vector<Cube::Move>& moves) override;
+    bool initServos() override;
+    void pauseControl() override;
+    void resumeControl() override;
 
 private:
-    bool initServos();
-    void pauseThreadFunction();
     void setBottomServoPosition(BottomServoPosition bottomServoPosition);
     void setTopServoPosition(TopServoPosition topServoPosition);
 
-    std::thread _pauseThread;
     std::atomic<bool> _paused{false};
-    std::atomic<bool> _finishPauseThread{false};
     std::mutex _pauseMutex;
     std::condition_variable _pauseCondition;
 

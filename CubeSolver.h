@@ -3,6 +3,7 @@
 #include "Cube.h"
 #include "ServoController.h"
 
+#include <atomic>
 #include <memory>
 
 class CubeSolver
@@ -12,5 +13,8 @@ public:
     void solveCube(Cube& cube);
 
 private:
+    void pauseFunction();
+
     std::unique_ptr<ServoController> _servoController;
+    std::atomic<bool> _finishPauseThread{false};
 };

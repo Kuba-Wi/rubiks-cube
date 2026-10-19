@@ -2,10 +2,6 @@
 
 #include "Logger.h"
 
-#include <iostream>
-#include <poll.h>
-#include <thread>
-
 namespace
 {
 constexpr std::chrono::milliseconds defaultSleepTime(1000);
@@ -64,7 +60,7 @@ bool ServoControllerTcp::initServos()
     LOG_INFO("Connecting to the server at ", _tcpSender.serverIp, ":", int(_tcpSender.port), ".");
     if (!_tcpSender.connectToServer())
     {
-        LOG_INFO("Failed to connect to the server.");
+        LOG_ERROR("Failed to connect to the server.");
         return false;
     }
     LOG_INFO("Connected.");
@@ -82,18 +78,8 @@ bool ServoControllerTcp::initServos()
 
 void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
 {
-    if (!initServos())
-    {
-        return;
-    }
-
     ServoPositionsPlanner servoPositionsPlanner;
     auto servoPositionsSequence = servoPositionsPlanner.planServoPositionsSequence(moves);
-
-    LOG_INFO("Put cube in the initial position and press Enter to start solving...");
-    std::cin.get();
-
-    _pauseThread = std::thread(&ServoControllerTcp::pauseThreadFunction, this);
 
     for (const auto& [move, servoPositions] : servoPositionsSequence)
     {
@@ -121,9 +107,19 @@ void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
             }
         }
     }
+}
 
-    _finishPauseThread = true;
-    _pauseThread.join();
+void ServoControllerTcp::pauseControl()
+{
+    std::lock_guard<std::mutex> lock(_pauseMutex);
+    _paused = true;
+}
+
+void ServoControllerTcp::resumeControl()
+{
+    std::lock_guard<std::mutex> lock(_pauseMutex);
+    _paused = false;
+    _pauseCondition.notify_all();
 }
 
 void ServoControllerTcp::setBottomServoPosition(BottomServoPosition bottomServoPosition)
@@ -144,6 +140,7 @@ void ServoControllerTcp::setBottomServoPosition(BottomServoPosition bottomServoP
         }
     }
 }
+
 void ServoControllerTcp::setTopServoPosition(TopServoPosition topServoPosition)
 {
     if (topServoPosition != _currentTopServoPosition)
@@ -151,39 +148,5 @@ void ServoControllerTcp::setTopServoPosition(TopServoPosition topServoPosition)
         _currentTopServoPosition = topServoPosition;
         _tcpSender.sendData(translateServoPositionToCommand(topServoPosition));
         std::this_thread::sleep_for(defaultSleepTime);
-    }
-}
-
-void ServoControllerTcp::pauseThreadFunction()
-{
-    LOG_INFO("Press Enter to pause/resume the servo control...");
-    pollfd pfd{};
-    pfd.fd = STDIN_FILENO;
-    pfd.events = POLLIN;
-
-    while (!_finishPauseThread)
-    {
-        int result = poll(&pfd, 1, 100);
-        if (result == 0)
-        {
-            continue; // Timeout, no input
-        }
-        else if (result > 0 && (pfd.revents & POLLIN))
-        {
-            char c;
-            [[maybe_unused]] ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
-        }
-
-        std::lock_guard<std::mutex> lock(_pauseMutex);
-        _paused = !_paused;
-        if (_paused)
-        {
-            LOG_INFO("Servo control paused. Press Enter to resume...");
-        }
-        else
-        {
-            LOG_INFO("Servo control resumed.");
-        }
-        _pauseCondition.notify_all();
     }
 }
