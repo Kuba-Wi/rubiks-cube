@@ -1,0 +1,16 @@
+[Unit]
+Description=A service that receives data over TCP and controlls servo motors based on that
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/control-servo
+ExecStart=/usr/bin/python3 /opt/control-servo/main.py
+Restart=on-failure
+RestartSec=5
+
+User=debian
+Group=debian
+
+[Install]
+WantedBy=multi-user.target
