@@ -83,7 +83,7 @@ void ServoControllerTcp::controlServos(const std::vector<Cube::Move>& moves)
 
     for (const auto& [move, servoPositions] : servoPositionsSequence)
     {
-        LOG_INFO("Executing move: ", Cube::moveToString(move), ".");
+        LOG_INFO("Executing move: ", Cube::moveToString(move));
 
         for (const auto& servoPosition : servoPositions)
         {
