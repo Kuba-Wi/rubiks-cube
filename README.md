@@ -127,8 +127,8 @@ Kuba-Wi:~/rubiks-cube/build$ ./rubiks-cube ../images 127.0.0.1
 [INFO] Connected.
 [INFO] Put the cube in the initial position and press Enter to start solving...
 
-[INFO] Executing move: L
 [INFO] Press Enter to pause/resume solving...
+[INFO] Executing move: L
 [INFO] Executing move: U
 [INFO] Executing move: F
 [INFO] Executing move: L2

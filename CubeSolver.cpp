@@ -23,6 +23,7 @@ void CubeSolver::solveCube(Cube& cube)
 
     LOG_INFO("Put cube in the initial position and press Enter to start solving...");
     std::cin.get();
+    LOG_INFO("Press Enter to pause/resume solving...");
 
     auto pauseThread = std::thread(&CubeSolver::pauseFunction, this);
     _servoController->controlServos(movesSequence);
@@ -32,7 +33,6 @@ void CubeSolver::solveCube(Cube& cube)
 
 void CubeSolver::pauseFunction()
 {
-    LOG_INFO("Press Enter to pause/resume solving...");
     bool isPaused = false;
 
     pollfd pfd{};
